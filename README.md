@@ -27,6 +27,11 @@ Future stack-specific scaffolds are sibling bootstrap skills. Each owns its
 template and runtime-skill bundle, so installing or invoking one cannot install
 another scaffold's skills.
 
+`skills/go-project-scaffold/` is the first stack-specific sibling. It creates a
+single-module Go command project with tight static feedback, native Git hooks,
+dependency vulnerability scanning, a non-blocking mutation-testing pilot, and
+GitHub Actions CI.
+
 ## Security defaults
 
 The generated project starts with security controls that do not depend on an
@@ -70,6 +75,7 @@ installed only for the agents selected during initialization.
 | Skill | Scope | Use it for |
 | --- | --- | --- |
 | `agent-project-scaffold` | User/global bootstrap skill | Create a new, empty agent-ready project and install the selected agents' runtime skills. It does not retrofit existing repositories. |
+| `go-project-scaffold` | User/global bootstrap skill | Create a new Go command project with Go-specific skills, quality gates, hooks, and CI. It requires a Go module path. |
 | `project-workflow` | Generated project | Inspect current PRD state and route work to creation, readiness review, implementation, final review, or archival. |
 | `prd-create` | Generated project | Research, create, or materially revise a master PRD and dependency-ordered stage PRDs without implementing product code. |
 | `prd-review` | Generated project | Review a PRD for implementation readiness or review completed code, reporting P1/P2/P3 findings and enforcing revision gates. |

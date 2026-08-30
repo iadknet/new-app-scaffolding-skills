@@ -1,0 +1,146 @@
+#!/bin/sh
+set -eu
+
+usage() {
+  printf '%s\n' 'Usage: init-go-project [--name <display-name>] --module <module-path> --agent <agent> [--agent <agent> ...] <target-directory>'
+}
+
+fail() {
+  printf 'init-go-project: %s\n' "$*" >&2
+  exit 1
+}
+
+display_name=
+module_path=
+agent_arguments=
+agent_count=0
+existing_git=0
+while [ "$#" -gt 0 ]; do
+  case $1 in
+    --name)
+      [ "$#" -ge 2 ] || fail '--name requires a value'
+      display_name=$2
+      shift 2
+      ;;
+    --module)
+      [ "$#" -ge 2 ] || fail '--module requires a value'
+      module_path=$2
+      shift 2
+      ;;
+    --agent)
+      [ "$#" -ge 2 ] || fail '--agent requires a value'
+      case $2 in ''|*[!A-Za-z0-9_-]*) fail 'agent names may contain only letters, numbers, hyphens, and underscores' ;; esac
+      agent_arguments="$agent_arguments --agent $2"
+      agent_count=$((agent_count + 1))
+      shift 2
+      ;;
+    --help|-h) usage; exit 0 ;;
+    --*) fail "unknown option: $1" ;;
+    *)
+      [ "$#" -eq 1 ] || fail 'exactly one target directory is required'
+      target=$1
+      shift
+      ;;
+  esac
+done
+
+[ "${target+x}" = x ] || { usage >&2; exit 2; }
+[ -n "$module_path" ] || fail '--module is required'
+[ "$agent_count" -gt 0 ] || fail 'at least one --agent is required'
+case $module_path in *' '*|*'/'|/*|*..*|*//*) fail "invalid Go module path: $module_path" ;; esac
+
+if [ -e "$target" ] && [ ! -d "$target" ]; then
+  fail "target exists and is not a directory: $target"
+fi
+[ ! -L "$target" ] || fail 'target must not be a symbolic link'
+if [ -d "$target" ]; then
+  target_has_extra=0
+  for entry in "$target"/* "$target"/.[!.]* "$target"/..?*; do
+    [ -e "$entry" ] || [ -L "$entry" ] || continue
+    [ "$(basename "$entry")" = .git ] || target_has_extra=1
+  done
+  [ "$target_has_extra" -eq 0 ] || fail "target directory is not empty: $target"
+  if [ -e "$target/.git" ]; then
+    [ -d "$target/.git" ] || fail 'target contains an invalid .git entry'
+    git -C "$target" rev-parse --git-dir >/dev/null 2>&1 || fail 'target contains an invalid Git repository'
+    if git -C "$target" rev-parse --verify HEAD >/dev/null 2>&1; then
+      fail 'target Git repository already has commits'
+    fi
+    [ -z "$(git -C "$target" remote)" ] || fail 'target Git repository already has remotes'
+    git -C "$target" diff --cached --quiet || fail 'target Git repository has staged content'
+    existing_git=1
+  fi
+fi
+
+if [ -z "$display_name" ]; then
+  display_name=$(basename "$target")
+fi
+command_name=$(printf '%s' "$display_name" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-')
+[ -n "$command_name" ] || fail 'target name must contain letters or numbers'
+
+script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+skill_dir=$(CDPATH='' cd -- "$script_dir/.." && pwd)
+template_dir=$skill_dir/assets/template
+project_skills_dir=$skill_dir/assets/project-skills
+[ -d "$template_dir" ] || fail 'scaffold template is missing'
+[ -d "$project_skills_dir" ] || fail 'project skill bundle is missing'
+command -v git >/dev/null 2>&1 || fail 'Git is required'
+command -v go >/dev/null 2>&1 || fail 'Go is required'
+command -v node >/dev/null 2>&1 || fail 'Node.js is required'
+command -v npx >/dev/null 2>&1 || fail 'npx is required'
+
+target_parent=$(dirname -- "$target")
+target_name=$(basename -- "$target")
+mkdir -p "$target_parent"
+stage=$(mktemp -d "$target_parent/.${target_name}.initializing.XXXXXX")
+moved_existing_git=0
+cleanup() {
+  status=$?
+  if [ "$moved_existing_git" -eq 1 ] && [ -d "$stage/.git" ] && [ -d "$target" ] && [ ! -e "$target/.git" ]; then
+    mv "$stage/.git" "$target/.git" || :
+  fi
+  [ ! -d "$stage" ] || rm -rf "$stage"
+  exit "$status"
+}
+trap cleanup EXIT HUP INT TERM
+cp -R "$template_dir"/. "$stage"/
+
+replace_token() {
+  token=$1
+  value=$2
+  escaped=$(printf '%s' "$value" | sed 's/[&|\\]/\\&/g')
+  grep -rl "$token" "$stage" | while IFS= read -r file; do
+    sed "s|$token|$escaped|g" "$file" >"$file.tmp"
+    mv "$file.tmp" "$file"
+  done
+}
+replace_token '__PROJECT_NAME__' "$display_name"
+replace_token '__MODULE_PATH__' "$module_path"
+replace_token '__COMMAND_NAME__' "$command_name"
+mv "$stage/cmd/__COMMAND_NAME__" "$stage/cmd/$command_name"
+
+(
+  cd "$stage"
+  npm_before=$(node -e 'process.stdout.write(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())')
+  # agent_arguments contains only parser-validated names.
+  # shellcheck disable=SC2086
+  NPM_CONFIG_BEFORE=$npm_before npx --yes skills@1.5.23 add "$project_skills_dir" --skill '*' --copy --yes $agent_arguments
+  chmod +x scripts/* .githooks/*
+  go test ./...
+)
+
+if [ "$existing_git" -eq 1 ]; then
+  mv "$target/.git" "$stage/.git"
+  moved_existing_git=1
+  git -C "$stage" symbolic-ref HEAD refs/heads/main
+else
+  git -C "$stage" init -b main >/dev/null
+fi
+if [ -d "$target" ]; then
+  rmdir "$target" || fail "target directory changed while initializing: $target"
+fi
+mv "$stage" "$target"
+moved_existing_git=0
+trap - EXIT HUP INT TERM
+printf '\nInitialized %s in %s\n' "$display_name" "$target"
+printf 'Next step: cd %s && make setup\n' "$target"

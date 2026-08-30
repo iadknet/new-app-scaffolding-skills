@@ -1,0 +1,21 @@
+#!/bin/sh
+set -eu
+
+for workflow in .github/workflows/*.yml .github/workflows/*.yaml; do
+  [ -f "$workflow" ] || continue
+  grep -Eq '^permissions:$' "$workflow" || {
+    printf 'policy-check: %s lacks explicit permissions\n' "$workflow" >&2
+    exit 1
+  }
+  grep -Eq '^  contents: read$' "$workflow" || {
+    printf 'policy-check: %s must use read-only contents permission\n' "$workflow" >&2
+    exit 1
+  }
+  sed -n 's/^[[:space:]]*-\{0,1\}[[:space:]]*uses:[[:space:]]*\([^ #]*\).*/\1/p' "$workflow" |
+    while IFS= read -r action; do
+      printf '%s\n' "$action" | grep -Eq '@[0-9a-f]{40}$' || {
+        printf 'policy-check: %s contains an unpinned action: %s\n' "$workflow" "$action" >&2
+        exit 1
+      }
+    done
+done

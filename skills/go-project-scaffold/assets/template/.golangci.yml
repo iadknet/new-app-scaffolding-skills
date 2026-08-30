@@ -1,0 +1,40 @@
+version: "2"
+
+run:
+  timeout: 5m
+  tests: true
+
+linters:
+  default: standard
+  enable:
+    - dupl
+    - errcheck
+    - errorlint
+    - funlen
+    - gocritic
+    - gocyclo
+    - gosec
+    - interfacebloat
+    - nestif
+    - nolintlint
+    - revive
+    - staticcheck
+    - thelper
+    - unused
+    - usetesting
+  settings:
+    dupl:
+      threshold: 100
+    funlen:
+      lines: 120
+      statements: 80
+    gocyclo:
+      min-complexity: 15
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+
+formatters:
+  enable:
+    - gofmt
+    - gofumpt

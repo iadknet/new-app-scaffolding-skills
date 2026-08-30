@@ -20,7 +20,7 @@ skill-check: ## Scan all repository skills for high-severity security findings.
 	@scripts/skill-check
 
 check: ## Run distribution quality checks and the local test suite.
-	@find bin scripts tests skills/agent-project-scaffold/scripts skills/agent-project-scaffold/assets/template/scripts -type f -perm -111 -print | while IFS= read -r file; do sh -n "$$file"; done
+	@find bin scripts tests skills/agent-project-scaffold/scripts skills/agent-project-scaffold/assets/template/scripts skills/go-project-scaffold/scripts skills/go-project-scaffold/assets/template/scripts skills/go-project-scaffold/assets/template/.githooks -type f -perm -111 -print | while IFS= read -r file; do sh -n "$$file"; done
 	@tests/distribution-quality.sh
 	@$(MAKE) --no-print-directory test
 	@scripts/skill-check
@@ -33,6 +33,7 @@ test: ## Run focused offline tests for initialization and template behavior.
 	@tests/dependency-audit.sh
 	@tests/changelog.sh
 	@tests/skill-check.sh
+	@tests/go-scaffold.sh
 
 test-integration: ## Verify pinned external tools end to end.
 	@tests/tool-integration.sh
