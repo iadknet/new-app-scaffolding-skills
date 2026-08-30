@@ -27,6 +27,84 @@ Future stack-specific scaffolds are sibling bootstrap skills. Each owns its
 template and runtime-skill bundle, so installing or invoking one cannot install
 another scaffold's skills.
 
+## Security defaults
+
+The generated project starts with security controls that do not depend on an
+application stack. Stack- and release-specific controls remain explicit follow-up
+work rather than being implied by the foundation.
+
+| Area | Practice implemented by the template | Enforcement |
+| --- | --- | --- |
+| Tool acquisition | Security and quality tools are version-pinned. Downloaded release archives are verified against platform-specific SHA-256 checksums before installation. | `make setup` and the `scripts/install-*` installers |
+| Dependency integrity | Node and Python dependency roots require a committed lockfile, an exact supported package-manager version, and consistent workspace ownership. | `scripts/dependency-policy-check` through `make check` |
+| Dependency freshness | New npm, pnpm, Yarn, and uv resolutions must observe a seven-day package-age gate, paired with a seven-day Dependabot cooldown. | Native package-manager configuration checks and `.github/dependabot.yml` validation |
+| Vulnerability management | Supported lockfiles are scanned for known vulnerabilities. Exceptions must name one vulnerability and include a reason and expiration; broad package overrides are rejected. | OSV-Scanner through `make dependency-audit` and `make check` |
+| Secret protection | Staged changes are scanned before commit and the complete Git history is scanned in CI. Scan output is redacted. | Gitleaks through pre-commit, `make precommit`, and `make audit` |
+| Agent-skill safety | Project skills receive deterministic behavioral, trigger, and overlap analysis. HIGH and CRITICAL findings block the check; LLM analysis is not part of the blocking path. | Cisco AI Skill Scanner through pre-commit, `make check`, and a dedicated CI job |
+| GitHub Actions hardening | Workflows must declare read-only `contents` permission, may not override it at job level, and must pin actions to full commit SHAs. Checkout credentials are not persisted. | `scripts/policy-check`; offline zizmor analysis runs in CI |
+| Local/CI parity | The same project policy, PRD, quality, skill, dependency, and secret checks are available locally and in CI. | The stable `make` interface and the standard pre-commit framework |
+| Deferred release controls | SBOMs, provenance attestations, CodeQL, dependency review, Scorecard, and repository rulesets are intentionally deferred until the stack, visibility, artifact, and GitHub plan are known. | Documented in the generated `SECURITY.md` and selected-stack PRD |
+
+### Included security and quality tooling
+
+| Tool | Pinned version | Role in a generated project |
+| --- | --- | --- |
+| Gitleaks | 8.30.1 | Scans staged changes and Git history for secrets |
+| OSV-Scanner | 2.4.0 | Scans supported dependency lockfiles for known vulnerabilities |
+| Cisco AI Skill Scanner | 2.0.13 | Scans installed project skills and blocks HIGH or CRITICAL findings |
+| ShellCheck | 0.11.0 | Statically analyzes the template's POSIX shell scripts |
+| actionlint | 1.7.12 | Validates GitHub Actions workflows and invokes the pinned ShellCheck binary for embedded shell |
+| pre-commit | 4.5.1 | Runs project validation and skill scanning from the standard Git hook framework |
+| zizmor | 1.29.0 | Performs offline GitHub Actions security analysis in CI |
+| uv | 0.12.3 in CI | Installs pinned Python-based tools with a seven-day release-age constraint |
+
+The generated [security policy](skills/agent-project-scaffold/assets/template/SECURITY.md)
+contains the complete dependency acquisition, registry, exception, and private
+vulnerability-reporting guidance.
+
+## Skills
+
+The bootstrap skill creates the project; four private runtime skills are then
+installed only for the agents selected during initialization.
+
+| Skill | Scope | Use it for |
+| --- | --- | --- |
+| `agent-project-scaffold` | User/global bootstrap skill | Create a new, empty agent-ready project and install the selected agents' runtime skills. It does not retrofit existing repositories. |
+| `project-workflow` | Generated project | Inspect current PRD state and route work to creation, readiness review, implementation, final review, or archival. |
+| `prd-create` | Generated project | Research, create, or materially revise a master PRD and dependency-ordered stage PRDs without implementing product code. |
+| `prd-review` | Generated project | Review a PRD for implementation readiness or review completed code, reporting P1/P2/P3 findings and enforcing revision gates. |
+| `prd-implement` | Generated project | Implement an approved PRD in stage order, maintain truthful status and verification evidence, synchronize documentation, and prepare it for final review. |
+
+## PRD workflow
+
+Generated projects treat PRDs as executable, repository-validated workflow
+state. The initializer seeds a `project-foundation` PRD so stack selection begins
+with goals, constraints, research, and observable decisions instead of framework
+assumptions.
+
+1. **Create:** invoke `prd-create`, which uses `scripts/prd-new` to create one
+   master PRD and one or more dependency-ordered stage PRDs under
+   `docs/prds/active/<slug>/`.
+2. **Review for readiness:** invoke `prd-review`. P1 and P2 findings require
+   revision; a clean review sets the PRD and its stages to `Ready` and its inline
+   `Review Status` to `APPROVED`. Automated readiness review is capped at three
+   attempts before human intervention is required.
+3. **Implement:** invoke `prd-implement` only for an approved `Ready` or
+   `In Progress` PRD. Complete stages in order, record verification evidence,
+   and keep affected durable documentation synchronized.
+4. **Review the implementation:** invoke `prd-review` for the final-code gate.
+   P1 and P2 findings block completion; the review reruns the checks declared by
+   affected stages and does not alter the readiness review count.
+5. **Validate and archive:** run `make check`, then
+   `scripts/prd-archive <slug>`. Archival succeeds only for a complete, valid PRD
+   set and rolls back the move if post-archive validation fails.
+
+`scripts/prd-check` enforces required sections, status and checkbox consistency,
+dependency order, documentation synchronization gates, the three-review cap,
+generated indexes, and a 750-line limit per PRD. Use
+`project-workflow` when the appropriate phase is not already clear from the
+current state.
+
 ## Create a project
 
 ```sh
