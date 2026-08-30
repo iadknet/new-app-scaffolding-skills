@@ -74,8 +74,9 @@ npx skills@1.5.23 add . --skill agent-project-scaffold --global
 
 Releases are repository-wide stable SemVer tags, beginning with `v0.1.0`. A tag
 pins every parent scaffold and its private runtime-skill bundle to one immutable
-source revision. Run the checks and publish a GitHub Release after tag CI passes;
-the exact procedure is in [RELEASING.md](RELEASING.md).
+source revision. Generate and review the corresponding [CHANGELOG.md](CHANGELOG.md)
+section before running the checks and publishing a GitHub Release after tag CI
+passes; the exact procedure is in [RELEASING.md](RELEASING.md).
 
 ## Development
 

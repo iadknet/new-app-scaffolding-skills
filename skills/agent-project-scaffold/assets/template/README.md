@@ -25,6 +25,17 @@ Use your agent's skill interface to inspect and invoke `project-workflow`,
 `project-workflow` when the current PRD state should select the appropriate
 phase.
 
+## Changelog
+
+Before tagging a release, generate and review its entry:
+
+```sh
+make changelog VERSION=v0.1.0
+```
+
+The generator groups `feat` commits under Added, `fix` commits under Fixed, and
+other non-merge commits under Changed.
+
 ## Stable commands
 
 Run `make help` for the complete interface. `check`, `audit`, `precommit`, and

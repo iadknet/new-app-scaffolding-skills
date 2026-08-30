@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help setup precommit prd-check check audit run build test lint format clean
+.PHONY: help setup precommit prd-check check audit changelog run build test lint format clean
 
 help: ## Show the stable project command interface.
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  %-12s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -27,6 +27,9 @@ check: ## Run PRD, repository policy, and quality validation.
 
 audit: ## Scan the full repository and Git history for secrets.
 	@scripts/secret-scan history
+
+changelog: ## Generate a release section. Set VERSION=v<major>.<minor>.<patch>.
+	@scripts/changelog "$(VERSION)"
 
 run build test lint format clean: ## Successful placeholders pending stack selection.
 	@printf '%s is awaiting the stack-specific follow-on PRD.\n' "$@"

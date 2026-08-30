@@ -7,10 +7,17 @@ repository.
 From a clean, reviewed `main` checkout, run:
 
 ```sh
+make changelog VERSION=v0.1.0
+git add CHANGELOG.md
+git commit -m 'chore: prepare v0.1.0'
 make release-check VERSION=v0.1.0
 git tag -a v0.1.0 -m 'v0.1.0'
 git push origin v0.1.0
 ```
+
+`make changelog` groups `feat` commits under Added, `fix` commits under Fixed,
+and every other non-merge commit under Changed. Review the generated section
+before committing it.
 
 After the tag workflow passes, publish its GitHub Release with generated notes:
 

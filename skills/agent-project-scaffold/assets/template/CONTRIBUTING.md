@@ -11,3 +11,7 @@ scripts/prd-new <kebab-slug> <stage-slug> [stage-slug ...]
 ```
 
 Review security-sensitive reports privately as described in `SECURITY.md`.
+
+Use concise commit summaries. The release changelog groups summaries beginning
+with `feat` under Added and `fix` under Fixed; all other non-merge commits are
+listed under Changed.
