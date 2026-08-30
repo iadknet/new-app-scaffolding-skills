@@ -29,6 +29,8 @@ test: ## Run focused offline tests for initialization and template behavior.
 	@tests/run.sh
 	@tests/prd-tools.sh
 	@tests/policy-check.sh
+	@tests/dependency-policy.sh
+	@tests/dependency-audit.sh
 	@tests/changelog.sh
 	@tests/skill-check.sh
 

@@ -14,7 +14,9 @@ make check
 Then read [the project foundation PRD](docs/prds/active/project-foundation/master-prd.md)
 and [the contributor guide](CONTRIBUTING.md).
 
-`make setup` requires `uv` and network access to install the pinned Python tools.
+`make setup` requires `uv` and network access to install the pinned Python and
+dependency-security tools. The Python tool resolution uses a seven-day release-age
+window.
 
 ## Workflow skills
 
@@ -40,11 +42,15 @@ other non-merge commits under Changed.
 
 ## Stable commands
 
-Run `make help` for the complete interface. `check`, `audit`, `precommit`, and
-`prd-check` retain stable meanings. Before setup, `check` runs dependency-free
-validation and clearly reports that extended checks were skipped. After setup,
-it also runs pinned ShellCheck, actionlint, and Cisco AI Skill Scanner. The
-scanner uses deterministic behavioral and trigger analysis and blocks HIGH or
-CRITICAL findings; LLM analysis is not enabled. `run`, `build`, `test`, `lint`,
+Run `make help` for the complete interface. `check`, `audit`, `precommit`,
+`prd-check`, and `dependency-audit` retain stable meanings. Before setup,
+`check` runs dependency-free validation and clearly reports that extended checks
+were skipped. After setup, it also runs pinned ShellCheck, actionlint, Cisco AI
+Skill Scanner, and OSV-Scanner. OSV-Scanner checks supported dependency lockfiles
+when the selected stack adds them. For a selected Node stack, `check` also verifies
+the declared package-manager binary and its effective project configuration. The
+skill scanner uses deterministic behavioral
+and trigger analysis and blocks HIGH or CRITICAL findings; LLM analysis is not
+enabled. `run`, `build`, `test`, `lint`,
 `format`, and `clean` intentionally remain successful placeholders until the
 selected-stack PRD replaces them.

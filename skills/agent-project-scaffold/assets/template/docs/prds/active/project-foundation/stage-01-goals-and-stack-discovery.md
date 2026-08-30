@@ -15,7 +15,9 @@ without guessing the product, users, constraints, or technology.
 - Research credible existing stack options using current primary sources.
 - Select and justify a stack, including meaningful tradeoffs.
 - Decide licensing, repository visibility, and ownership.
-- Revisit deferred security tools in the context of the selected stack.
+- Select the package manager and implement the enforced dependency-acquisition
+  policy in the context of the selected stack.
+- Revisit deferred release-security tools in the context of the selected stack.
 - Create a dependency-ordered follow-on implementation PRD.
 
 ## Non-Goals
@@ -52,7 +54,9 @@ migration debt. None identified in the current stack-neutral foundation.
 - [ ] Research at least two credible stack alternatives from current primary sources.
 - [ ] Record the selected stack and rejected alternatives with tradeoffs.
 - [ ] Decide licensing, repository visibility, and ownership.
-- [ ] Decide which deferred security tools now apply.
+- [ ] Configure the selected package manager's seven-day age gate, exact version,
+  lockfile, frozen CI install, and matching Dependabot entry.
+- [ ] Decide which deferred release-security tools now apply.
 - [ ] Create and link the stack implementation PRD that replaces Make placeholders.
 
 ## Verification and Observable Success Criteria

@@ -55,9 +55,10 @@ separately reviewed implementation PRD.
 ## Cross-Stage Decisions
 
 - The stable Make targets remain the project interface across stack selection.
-- Application package Dependabot, CodeQL, dependency review, OpenSSF Scorecard,
-  CODEOWNERS, and additional security audits remain deferred until their context
-  is known.
+- Application package Dependabot entries, frozen-install commands, and the
+  matching package-manager age gate are required when the stack is selected.
+  CodeQL, dependency review, OpenSSF Scorecard, CODEOWNERS, SBOMs, and build
+  provenance remain deferred until repository and release context is known.
 
 ## Implementation or Decision Tasks
 

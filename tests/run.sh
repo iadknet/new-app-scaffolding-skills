@@ -26,6 +26,8 @@ cat >"$mock_bin/npx" <<'EOF'
 set -eu
 
 [ "$1" = --yes ] && [ "$2" = skills@1.5.23 ] || exit 2
+[ -n "${NPM_CONFIG_BEFORE:-}" ] || exit 2
+printf '%s\n' "$NPM_CONFIG_BEFORE" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}T' || exit 2
 shift 2
 [ "$1" = add ] || exit 2
 source_dir=$2
@@ -64,6 +66,7 @@ project="$tmp/project with spaces"
 init --name 'Example & Tools' "$project" >/dev/null
 for expected in AGENTS.md CHANGELOG.md CLAUDE.md Makefile README.md SECURITY.md .pre-commit-config.yaml \
   scripts/changelog scripts/prd-check scripts/skill-check scripts/install-pre-commit \
+  scripts/install-osv-scanner scripts/dependency-audit scripts/dependency-policy-check \
   docs/prds/active/project-foundation/master-prd.md .github/workflows/ci.yml; do
   assert_file "$project/$expected"
 done

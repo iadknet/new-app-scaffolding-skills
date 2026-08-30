@@ -3,5 +3,6 @@ set -eu
 
 scripts/prd-check --staged
 scripts/policy-check
+scripts/dependency-audit --require-tools
 scripts/quality-check --require-tools
 scripts/secret-scan staged

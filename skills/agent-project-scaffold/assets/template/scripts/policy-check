@@ -8,6 +8,8 @@ fail() {
 
 [ -f AGENTS.md ] || fail 'AGENTS.md is missing'
 
+scripts/dependency-policy-check
+
 for shell_file in scripts/*; do
   [ -f "$shell_file" ] || continue
   sh -n "$shell_file" || fail "$shell_file has invalid POSIX shell syntax"

@@ -147,9 +147,10 @@ esac
 
 (
   cd "$stage"
+  npm_before=$(node -e 'process.stdout.write(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())')
   # agent_arguments contains only parser-validated names.
   # shellcheck disable=SC2086
-  npx --yes skills@1.5.23 add "$project_skills_dir" --skill '*' --copy --yes $agent_arguments
+  NPM_CONFIG_BEFORE=$npm_before npx --yes skills@1.5.23 add "$project_skills_dir" --skill '*' --copy --yes $agent_arguments
 )
 
 chmod +x "$stage"/scripts/*

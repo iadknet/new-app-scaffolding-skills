@@ -18,5 +18,5 @@ bin_root=$(pwd)/.tools/bin
 mkdir -p "$tool_root" "$bin_root"
 UV_TOOL_DIR=$tool_root UV_TOOL_BIN_DIR=$bin_root \
   uv tool install "cisco-ai-skill-scanner==$version" \
-    --python 3.12 --managed-python --no-progress
+    --python 3.12 --managed-python --no-progress --exclude-newer '7 days'
 "$target" --version

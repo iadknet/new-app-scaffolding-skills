@@ -34,9 +34,14 @@ if PATH="$mock_bin:$PATH" scripts/install-quality-tools >/dev/null 2>&1; then
   printf 'tool-integration: invalid quality-tool archive was accepted\n' >&2
   exit 1
 fi
+if PATH="$mock_bin:$PATH" scripts/install-osv-scanner >/dev/null 2>&1; then
+  printf 'tool-integration: invalid OSV-Scanner binary was accepted\n' >&2
+  exit 1
+fi
 [ ! -e .tools/bin/gitleaks ] || { printf 'tool-integration: invalid scanner was installed\n' >&2; exit 1; }
 [ ! -e .tools/bin/actionlint ] || { printf 'tool-integration: invalid actionlint was installed\n' >&2; exit 1; }
 [ ! -e .tools/bin/shellcheck ] || { printf 'tool-integration: invalid ShellCheck was installed\n' >&2; exit 1; }
+[ ! -e .tools/bin/osv-scanner ] || { printf 'tool-integration: invalid OSV-Scanner was installed\n' >&2; exit 1; }
 
 make setup
 [ -x .git/hooks/pre-commit ] || {
