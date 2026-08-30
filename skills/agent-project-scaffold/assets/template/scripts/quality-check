@@ -24,6 +24,6 @@ if [ ! -x "$actionlint" ] || [ ! -x "$shellcheck" ]; then
   exit 0
 fi
 
-find scripts .githooks -type f -exec "$shellcheck" --shell=sh --external-sources {} +
+find scripts -type f -exec "$shellcheck" --shell=sh --external-sources {} +
 "$actionlint" -shellcheck="$shellcheck"
 printf 'Repository quality validation passed.\n'

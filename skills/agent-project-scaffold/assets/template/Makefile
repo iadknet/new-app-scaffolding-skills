@@ -5,17 +5,14 @@
 help: ## Show the stable project command interface.
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  %-12s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-setup: ## Install pinned local tools and configure version-controlled hooks.
+setup: ## Install pinned local tools and configure pre-commit hooks.
 	@scripts/install-gitleaks
 	@scripts/install-quality-tools
-	@git config core.hooksPath .githooks
-	@printf 'Setup complete. Git hooks use .githooks.\n'
+	@scripts/install-pre-commit
+	@printf 'Setup complete. Git hooks use the pre-commit framework.\n'
 
 precommit: ## Validate staged PRDs, repository quality, and secrets.
-	@scripts/prd-check --staged
-	@scripts/policy-check
-	@scripts/quality-check --require-tools
-	@scripts/secret-scan staged
+	@.tools/bin/pre-commit run
 
 prd-check: ## Validate all active and archived PRD sets.
 	@scripts/prd-check

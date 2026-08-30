@@ -39,6 +39,14 @@ fi
 [ ! -e .tools/bin/shellcheck ] || { printf 'tool-integration: invalid ShellCheck was installed\n' >&2; exit 1; }
 
 make setup
+[ -x .git/hooks/pre-commit ] || {
+  printf 'tool-integration: pre-commit framework hook was not installed\n' >&2
+  exit 1
+}
+[ -z "$(git config --local --get core.hooksPath 2>/dev/null || :)" ] || {
+  printf 'tool-integration: legacy core.hooksPath remains configured\n' >&2
+  exit 1
+}
 make check >/dev/null
 
 cat >scripts/shellcheck-failure <<'EOF'
@@ -90,4 +98,4 @@ if make audit >/dev/null 2>&1; then
   exit 1
 fi
 
-printf 'Pinned downloads, checksum rejection, quality checks, staged scan, and history scan passed.\n'
+printf 'Pinned tools, pre-commit, staged secrets, and history scan passed.\n'

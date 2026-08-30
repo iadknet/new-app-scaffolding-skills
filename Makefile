@@ -1,18 +1,22 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help setup quality check test test-integration test-distribution changelog release-check test-network
+.PHONY: help setup precommit quality check test test-integration test-distribution changelog release-check test-network
 
 help: ## Show development targets.
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-setup: ## Install pinned development quality tools.
+setup: ## Install pinned development and pre-commit tools.
 	@skills/agent-project-scaffold/assets/template/scripts/install-quality-tools
+	@scripts/install-pre-commit
+
+precommit: ## Run the configured pre-commit hooks against staged changes.
+	@.tools/bin/pre-commit run
 
 quality: ## Run distribution ShellCheck and GitHub Actions validation.
 	@tests/distribution-quality.sh
 
 check: ## Run distribution quality checks and the local test suite.
-	@find bin scripts tests skills/agent-project-scaffold/scripts skills/agent-project-scaffold/assets/template/scripts skills/agent-project-scaffold/assets/template/.githooks -type f -print | while IFS= read -r file; do sh -n "$$file"; done
+	@find bin scripts tests skills/agent-project-scaffold/scripts skills/agent-project-scaffold/assets/template/scripts -type f -perm -111 -print | while IFS= read -r file; do sh -n "$$file"; done
 	@tests/distribution-quality.sh
 	@$(MAKE) --no-print-directory test
 

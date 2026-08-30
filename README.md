@@ -42,8 +42,8 @@ Provide one or more `--agent` values supported by the pinned `skills` CLI. The
 initializer requires POSIX shell tools, Git, Node.js 22.20+, and network access
 for the pinned installer. It builds and validates a staging project before it
 replaces the target, creates a local `main` branch, and never creates a commit
-or remote. `make setup` installs pinned quality and security tools and configures
-Git hooks.
+or remote. `make setup` additionally requires `uv`; it installs pinned quality
+and security tools and configures the standard pre-commit framework.
 
 This initializer supports new projects only. It does not install the scaffold or
 its skills into an existing, non-empty repository.
@@ -92,7 +92,8 @@ make test-integration
 make test-distribution
 ```
 
-The integration target downloads the pinned release archives and verifies their
-checksums, executable layouts, and end-to-end detection behavior.
+The integration target downloads the pinned release archives and Python tools,
+then verifies their executable layouts, hook installation, and end-to-end
+detection behavior.
 `test-distribution` installs a local bootstrap copy through `npx skills` and
 verifies the installed initializer's generated project.

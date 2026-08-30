@@ -8,7 +8,7 @@ project=$tmp/project
 template=$root/skills/agent-project-scaffold/assets/template
 
 cp -R "$template" "$project"
-chmod +x "$project"/scripts/* "$project"/.githooks/pre-commit
+chmod +x "$project"/scripts/*
 cd "$project"
 
 scripts/policy-check

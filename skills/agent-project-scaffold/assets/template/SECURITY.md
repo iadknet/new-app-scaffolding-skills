@@ -11,7 +11,8 @@ policy is established after the product and release model are selected.
 
 ## Local checks
 
-`make precommit` validates repository quality and scans staged changes. `make
-audit` scans repository history. Run `make setup` once to install the pinned
-Gitleaks, ShellCheck, and actionlint binaries and configure the version-controlled
-hook. CI also runs offline zizmor analysis over GitHub Actions definitions.
+`make precommit` runs the standard pre-commit framework, validates repository
+quality, and scans staged secrets. `make audit` scans repository history. Run
+`make setup` once to install pinned Gitleaks, ShellCheck, actionlint, and
+pre-commit tools and install the Git hook. CI also runs offline zizmor analysis
+over GitHub Actions definitions.

@@ -14,6 +14,8 @@ make check
 Then read [the project foundation PRD](docs/prds/active/project-foundation/master-prd.md)
 and [the contributor guide](CONTRIBUTING.md).
 
+`make setup` requires `uv` and network access to install the pinned Python tools.
+
 ## Workflow skills
 
 The initializer has installed four project-scoped workflow skills for the

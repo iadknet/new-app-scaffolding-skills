@@ -1,0 +1,11 @@
+minimum_pre_commit_version: '4.5.1'
+
+repos:
+  - repo: local
+    hooks:
+      - id: project-validation
+        name: Project validation
+        entry: scripts/project-precommit
+        language: system
+        pass_filenames: false
+        always_run: true

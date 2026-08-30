@@ -1,0 +1,8 @@
+#!/bin/sh
+set -eu
+
+find bin scripts tests skills/agent-project-scaffold/scripts \
+  skills/agent-project-scaffold/assets/template/scripts -type f -perm -111 -print |
+  while IFS= read -r file; do sh -n "$file"; done
+tests/distribution-quality.sh --require-tools
+make --no-print-directory test

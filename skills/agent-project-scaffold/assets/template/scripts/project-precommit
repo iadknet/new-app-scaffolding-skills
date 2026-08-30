@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+
+scripts/prd-check --staged
+scripts/policy-check
+scripts/quality-check --require-tools
+scripts/secret-scan staged
