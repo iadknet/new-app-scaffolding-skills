@@ -45,6 +45,12 @@ master does not mix product selection with implementation detail.
 Premature implementation would embed unreviewed technology choices. Keeping the
 repository stack-neutral avoids that debt. None identified beyond this avoided risk.
 
+## Documentation Impact and Synchronization
+
+The discovery stage produces durable decision documentation in this PRD and its
+follow-on implementation PRD. Update project onboarding documentation when the
+selected stack changes setup or usage guidance.
+
 ## Stage Order and Links
 
 1. [Stage 01 — Goals and Stack Discovery](stage-01-goals-and-stack-discovery.md) — `Draft`
@@ -69,6 +75,7 @@ separately reviewed implementation PRD.
 
 - [ ] The stage contains evidence for each required decision and passes readiness review.
 - [ ] The follow-on PRD exists with stage-level verification.
+- [ ] Affected durable documentation is created, updated, or synchronized, or a no-change rationale is recorded.
 - [ ] The final-code review gate for this decision work has passed.
 
 ## Current Status

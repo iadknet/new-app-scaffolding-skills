@@ -34,6 +34,11 @@ Explain why the stages are independently coherent and dependency ordered.
 
 State the implications, or write `None identified`.
 
+## Documentation Impact and Synchronization
+
+Summarize durable documentation affected across stages. If none is affected,
+record a concrete no-change rationale.
+
 ## Stage Order and Links
 
 1. [Stage 01 — example](stage-01-example.md) — `Draft`
@@ -51,6 +56,7 @@ Summarize ordering and cross-stage contracts without duplicating stage tasks.
 ## Verification and Observable Success Criteria
 
 - [ ] Every stage's declared verification has passed.
+- [ ] Affected durable documentation is created, updated, or synchronized, or a no-change rationale is recorded.
 - [ ] The final-code review gate has passed.
 
 ## Current Status

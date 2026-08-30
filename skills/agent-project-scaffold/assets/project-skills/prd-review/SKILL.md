@@ -15,8 +15,10 @@ not change either readiness field.
 Inspect repository evidence, not only the prose. Check consistency, dependency
 order, component boundaries, abstraction levels, separation of concerns,
 testability, existing-code impact, technical debt, security implications, and
-accidental complexity. For final-code review, inspect the actual diff and rerun
-the verification declared by affected stages.
+accidental complexity. Confirm each stage identifies affected durable
+documentation or gives a supported no-change rationale. For final-code review,
+inspect the actual diff, verify affected documentation matches implemented
+behavior, and rerun the verification declared by affected stages.
 
 Classify findings:
 
@@ -53,9 +55,10 @@ Do not create separate review-record files.
    affected stages.
 2. P1/P2 findings block completion. Make or request authorized fixes and review
    again; P3 findings do not block the stated outcome.
-3. On a pass, mark the final-code review checkbox complete and set the master
-   `Complete` only when every stage and checkbox is complete. Update the index,
-   run `scripts/prd-check`, and leave `Review Status` and `Review Count` unchanged.
+3. On a pass, mark documentation synchronization and final-code review checkboxes
+   complete and set the master `Complete` only when every stage and checkbox is
+   complete. Update the index, run `scripts/prd-check`, and leave `Review Status`
+   and `Review Count` unchanged.
 
 Never increment a count, reduce severity, or mark a checkbox complete merely to
 pass validation.

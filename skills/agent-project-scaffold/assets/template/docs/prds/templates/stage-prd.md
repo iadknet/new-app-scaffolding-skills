@@ -32,6 +32,12 @@ Explain why the stage is cohesive and where further splitting is or is not usefu
 
 State the implications, or write `None identified`.
 
+## Documentation Impact and Synchronization
+
+List durable user, operator, developer, architecture, API, or generated-reference
+documentation to create, update, or synchronize. If none is affected, write
+`No documentation changes required: <rationale>`.
+
 ## Implementation or Decision Tasks
 
 - [ ] Complete a concrete task.
@@ -39,6 +45,7 @@ State the implications, or write `None identified`.
 ## Verification and Observable Success Criteria
 
 - [ ] Run a concrete check and record the observable result.
+- [ ] Affected durable documentation is created, updated, or synchronized, or a no-change rationale is recorded.
 
 ## Current Status
 

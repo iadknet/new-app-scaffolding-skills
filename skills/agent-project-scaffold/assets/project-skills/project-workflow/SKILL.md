@@ -23,5 +23,6 @@ itself authorize implementation, commits, remotes, or external changes. When a
 phase reveals a material mismatch, move back to the appropriate earlier skill and
 preserve truthful statuses and checkboxes.
 
-The inline readiness status, three-review cap, and 750-line limit are hard gates
-enforced by `scripts/prd-check`; do not bypass them.
+The inline readiness status, three-review cap, documentation synchronization
+gate, and 750-line limit are hard gates enforced by `scripts/prd-check`; do not
+bypass them.

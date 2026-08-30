@@ -19,13 +19,17 @@ route to `$prd-review` or `$prd-create` instead of starting code changes.
 3. Mark a task complete only after its result exists. Run each declared check and
    mark verification complete only after observing success. Record useful evidence
    in the stage rather than relying on intent.
-4. Set a stage `Complete` only when its dependencies, tasks, and verification are
-   complete. Keep the master `In Progress` until every stage and implementation
-   task is complete.
-5. Use `$prd-review` for the final-code gate. Address P1/P2 findings and rerun
+4. Create, update, or synchronize the durable documentation identified by each
+   stage so it matches implemented behavior. If implementation evidence shows no
+   documentation is affected, record the concrete rationale before completing the
+   documentation gate.
+5. Set a stage `Complete` only when its dependencies, tasks, documentation gate,
+   and verification are complete. Keep the master `In Progress` until every stage
+   and implementation task is complete.
+6. Use `$prd-review` for the final-code gate. Address P1/P2 findings and rerun
    affected verification after review-driven changes. This review does not change
    the PRD readiness `Review Count`.
-6. Run `make check`. When final review has passed and validation confirms complete
+7. Run `make check`. When final review has passed and validation confirms complete
    state, run `scripts/prd-archive <slug>`.
 
 Do not archive manually, skip dependencies, or conceal follow-up debt in order to

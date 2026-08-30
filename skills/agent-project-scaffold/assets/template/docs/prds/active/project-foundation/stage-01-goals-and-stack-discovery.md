@@ -47,6 +47,12 @@ stages whose outputs can be independently verified.
 Record whether the selected stack creates coupling, generated-code ownership, or
 migration debt. None identified in the current stack-neutral foundation.
 
+## Documentation Impact and Synchronization
+
+The completed stage and follow-on implementation PRD are durable decision
+documentation. Update the project README when the selected stack changes setup
+or usage guidance; otherwise record why its current guidance remains accurate.
+
 ## Implementation or Decision Tasks
 
 - [ ] Write the project goal and primary audience.
@@ -65,6 +71,7 @@ migration debt. None identified in the current stack-neutral foundation.
 - [ ] Selected tools support the target development and deployment environments.
 - [ ] The follow-on PRD passes `scripts/prd-check`.
 - [ ] `make check` passes.
+- [ ] Affected durable documentation is created, updated, or synchronized, or a no-change rationale is recorded.
 
 ## Current Status
 

@@ -11,6 +11,9 @@
 - Keep relevant rationale and existing-code interactions in the applicable PRD
   at the abstraction level where they belong. Explicitly document
   separation-of-concerns and technical-debt implications.
+- Identify affected durable documentation in each PRD stage. Create, update, or
+  synchronize it with implemented behavior before completing the stage, or record
+  a concrete no-change rationale.
 - Run the verification declared by a stage after changing it. Run `make check`
   before declaring project work complete.
 - Do not archive a PRD manually; use `scripts/prd-archive <slug>`.

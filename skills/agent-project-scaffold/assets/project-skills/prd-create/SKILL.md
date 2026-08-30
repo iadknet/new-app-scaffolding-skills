@@ -21,8 +21,11 @@ Turn an outcome into a lean, executable PRD set under
    and decision tasks in dependency-ordered stages.
 5. For every master and stage, make scope, non-goals, existing-code interactions,
    boundaries, abstraction level, separation of concerns, technical-debt impact,
-   tasks, and observable verification specific. Write `None identified` when the
-   debt analysis genuinely finds none.
+   documentation impact, tasks, and observable verification specific. Identify
+   durable user, operator, developer, architecture, API, and generated-reference
+   documentation to create, update, or synchronize. When none is affected, record
+   a concrete no-change rationale. Write `None identified` when the debt analysis
+   genuinely finds none.
 6. Split a stage when it mixes independently testable components, unrelated
    abstraction levels, or tasks with different dependencies. Do not split merely
    to make files short.

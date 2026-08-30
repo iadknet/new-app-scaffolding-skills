@@ -64,6 +64,11 @@ Explain why these stages are independently coherent and dependency ordered.
 
 None identified. Revise this after concrete design analysis.
 
+## Documentation Impact and Synchronization
+
+Summarize durable documentation affected across stages. If none is affected,
+record a concrete no-change rationale.
+
 ## Stage Order and Links
 
 EOF
@@ -90,6 +95,7 @@ Summarize stage ordering and contracts here without duplicating stage tasks.
 ## Verification and Observable Success Criteria
 
 - [ ] Every stage's declared verification has passed.
+- [ ] Affected durable documentation is created, updated, or synchronized, or a no-change rationale is recorded.
 - [ ] The final-code review gate has passed.
 
 ## Current Status
@@ -137,6 +143,12 @@ Explain why this stage is cohesive and where further splitting is or is not usef
 
 None identified. Revise this after concrete design analysis.
 
+## Documentation Impact and Synchronization
+
+List durable user, operator, developer, architecture, API, or generated-reference
+documentation to create, update, or synchronize. If none is affected, write
+`No documentation changes required: <rationale>`.
+
 ## Implementation or Decision Tasks
 
 - [ ] Complete a concrete task.
@@ -144,6 +156,7 @@ None identified. Revise this after concrete design analysis.
 ## Verification and Observable Success Criteria
 
 - [ ] Run a concrete check and record the observable result.
+- [ ] Affected durable documentation is created, updated, or synchronized, or a no-change rationale is recorded.
 
 ## Current Status
 

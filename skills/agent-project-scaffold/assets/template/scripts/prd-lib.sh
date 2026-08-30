@@ -31,12 +31,16 @@ prd_check_document() {
     '## Boundaries and Abstraction Layers' \
     '## Separation of Concerns and Decomposition' \
     '## Tech Debt and Spaghetti-Code Implications' \
+    '## Documentation Impact and Synchronization' \
     '## Implementation or Decision Tasks' \
     '## Verification and Observable Success Criteria' \
     '## Current Status'
   do
     grep -Fqx "$prd_heading" "$prd_doc" || prd_error "$prd_doc is missing heading: $prd_heading"
   done
+
+  grep -Eq '^- \[[ x]\] Affected durable documentation is created, updated, or synchronized, or a no-change rationale is recorded\.$' "$prd_doc" || \
+    prd_error "$prd_doc is missing the documentation synchronization gate"
 
   if [ "$prd_kind" = master ]; then
     grep -Fqx '## Stage Order and Links' "$prd_doc" || prd_error "$prd_doc is missing heading: ## Stage Order and Links"
