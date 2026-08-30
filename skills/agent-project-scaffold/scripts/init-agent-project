@@ -1,0 +1,179 @@
+#!/bin/sh
+set -eu
+
+usage() {
+  cat <<'EOF'
+Usage: init-agent-project [--name <display-name>] --agent <agent> [--agent <agent> ...] <target-directory>
+EOF
+}
+
+fail() {
+  printf 'init-agent-project: %s\n' "$*" >&2
+  exit 1
+}
+
+display_name=
+agent_arguments=
+agent_count=0
+existing_git=0
+while [ "$#" -gt 0 ]; do
+  case $1 in
+    --name)
+      [ "$#" -ge 2 ] || fail "--name requires a value"
+      display_name=$2
+      shift 2
+      ;;
+    --agent)
+      [ "$#" -ge 2 ] || fail "--agent requires a value"
+      case $2 in
+        ''|*[!A-Za-z0-9_-]*) fail "agent names may contain only letters, numbers, hyphens, and underscores" ;;
+      esac
+      agent_arguments="$agent_arguments --agent $2"
+      agent_count=$((agent_count + 1))
+      shift 2
+      ;;
+    --help|-h)
+      usage
+      exit 0
+      ;;
+    --*)
+      fail "unknown option: $1"
+      ;;
+    *)
+      [ "$#" -eq 1 ] || fail "exactly one target directory is required"
+      target=$1
+      shift
+      ;;
+  esac
+done
+
+[ "${target+x}" = x ] || { usage >&2; exit 2; }
+[ -n "$target" ] || fail "target directory must not be empty"
+[ "$agent_count" -gt 0 ] || fail "at least one --agent is required"
+case $target in
+  *'
+'*) fail "target directory must not contain a newline" ;;
+esac
+
+if [ -e "$target" ] && [ ! -d "$target" ]; then
+  fail "target exists and is not a directory: $target"
+fi
+[ ! -L "$target" ] || fail "target must not be a symbolic link: $target"
+
+if [ -d "$target" ]; then
+  target_has_extra=0
+  for entry in "$target"/* "$target"/.[!.]* "$target"/..?*; do
+    [ -e "$entry" ] || [ -L "$entry" ] || continue
+    [ "$(basename "$entry")" = .git ] || target_has_extra=1
+  done
+  [ "$target_has_extra" -eq 0 ] || fail "target directory is not empty: $target"
+  if [ -e "$target/.git" ]; then
+    [ -d "$target/.git" ] || fail "target contains an invalid .git entry"
+    git -C "$target" rev-parse --git-dir >/dev/null 2>&1 || fail "target contains an invalid Git repository"
+    if git -C "$target" rev-parse --verify HEAD >/dev/null 2>&1; then
+      fail "target Git repository already has commits"
+    fi
+    [ -z "$(git -C "$target" remote)" ] || fail "target Git repository already has remotes"
+    git -C "$target" diff --cached --quiet || fail "target Git repository has staged content"
+    existing_git=1
+  fi
+fi
+
+if [ -z "$display_name" ]; then
+  display_name=$(basename "$target")
+fi
+[ -n "$display_name" ] || fail "display name must not be empty"
+case $display_name in
+  *'
+'*) fail "display name must not contain a newline" ;;
+esac
+
+script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+skill_dir=$(CDPATH='' cd -- "$script_dir/.." && pwd)
+template_dir=$skill_dir/assets/template
+project_skills_dir=$skill_dir/assets/project-skills
+[ -d "$template_dir" ] || fail "scaffold template is missing"
+[ -d "$project_skills_dir" ] || fail "project skill bundle is missing"
+
+command -v git >/dev/null 2>&1 || fail "Git is required"
+command -v node >/dev/null 2>&1 || fail "Node.js 22.20 or later is required"
+command -v npx >/dev/null 2>&1 || fail "npx is required"
+
+node_version=$(node -p 'process.versions.node') || fail "could not determine the Node.js version"
+node_major=${node_version%%.*}
+node_rest=${node_version#*.}
+node_minor=${node_rest%%.*}
+case $node_major:$node_minor in
+  *[!0-9:]*|:) fail "could not parse Node.js version: $node_version" ;;
+esac
+if [ "$node_major" -lt 22 ] || { [ "$node_major" -eq 22 ] && [ "$node_minor" -lt 20 ]; }; then
+  fail "Node.js 22.20 or later is required; found $node_version"
+fi
+
+target_parent=$(dirname -- "$target")
+target_name=$(basename -- "$target")
+[ -n "$target_name" ] && [ "$target_name" != / ] || fail "target directory is invalid: $target"
+mkdir -p "$target_parent"
+stage=$(mktemp -d "$target_parent/.${target_name}.initializing.XXXXXX")
+moved_existing_git=0
+
+cleanup() {
+  status=$?
+  if [ "$moved_existing_git" -eq 1 ] && [ -d "$stage/.git" ] && [ -d "$target" ] && [ ! -e "$target/.git" ]; then
+    mv "$stage/.git" "$target/.git" || :
+  fi
+  [ ! -d "$stage" ] || rm -rf "$stage"
+  exit "$status"
+}
+trap cleanup EXIT HUP INT TERM
+
+cp -R "$template_dir"/. "$stage"/
+
+escaped_name=$(printf '%s' "$display_name" | sed 's/[&|\\]/\\&/g')
+grep -rl '__PROJECT_NAME__' "$stage" | while IFS= read -r file; do
+  sed "s|__PROJECT_NAME__|$escaped_name|g" "$file" >"$file.tmp"
+  mv "$file.tmp" "$file"
+done
+
+initialization_date=$(date +%F)
+grep -rl '__INITIALIZATION_DATE__' "$stage" | while IFS= read -r file; do
+  sed "s|__INITIALIZATION_DATE__|$initialization_date|g" "$file" >"$file.tmp"
+  mv "$file.tmp" "$file"
+done
+
+case " $agent_arguments " in
+  *' --agent claude-code '*) printf '%s\n' '@AGENTS.md' >"$stage/CLAUDE.md" ;;
+esac
+
+(
+  cd "$stage"
+  # agent_arguments contains only parser-validated names.
+  # shellcheck disable=SC2086
+  npx --yes skills@1.5.23 add "$project_skills_dir" --skill '*' --copy --yes $agent_arguments
+)
+
+chmod +x "$stage"/scripts/* "$stage"/.githooks/pre-commit
+
+(
+  cd "$stage"
+  scripts/prd-check
+  scripts/policy-check
+)
+
+if [ "$existing_git" -eq 1 ]; then
+  mv "$target/.git" "$stage/.git"
+  moved_existing_git=1
+  git -C "$stage" symbolic-ref HEAD refs/heads/main
+else
+  git -C "$stage" init -b main >/dev/null
+fi
+
+if [ -d "$target" ]; then
+  rmdir "$target" || fail "target directory changed while initializing: $target"
+fi
+mv "$stage" "$target"
+moved_existing_git=0
+trap - EXIT HUP INT TERM
+
+printf '\nInitialized %s in %s\n' "$display_name" "$target"
+printf 'Next step: cd %s && make setup\n' "$(printf '%s' "$target" | sed "s/'/'\\\\''/g; s/.*/'&'/")"

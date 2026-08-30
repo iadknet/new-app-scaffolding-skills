@@ -1,0 +1,35 @@
+---
+name: prd-create
+description: Create or materially revise a master-and-stage PRD set for repository work that needs researched choices, decomposition, boundaries, and observable verification.
+---
+
+# Create a PRD Set
+
+Turn an outcome into a lean, executable PRD set under
+`docs/prds/active/<kebab-slug>/`.
+
+## Workflow
+
+1. Read `AGENTS.md`, relevant active PRDs, repository code, and durable decision
+   records before proposing structure. Distinguish observed facts from assumptions.
+2. Research credible existing solutions, standards, and current primary sources
+   when a technology or design choice is involved. Record links, tradeoffs, and why
+   rejected options do not fit; do not invent custom machinery without evidence.
+3. Run `scripts/prd-new <slug> <stage-slug> [stage-slug ...]` for a new set.
+   Revise existing files in place when the set already exists.
+4. Keep the master at outcome and cross-stage level. Put concrete implementation
+   and decision tasks in dependency-ordered stages.
+5. For every master and stage, make scope, non-goals, existing-code interactions,
+   boundaries, abstraction level, separation of concerns, technical-debt impact,
+   tasks, and observable verification specific. Write `None identified` when the
+   debt analysis genuinely finds none.
+6. Split a stage when it mixes independently testable components, unrelated
+   abstraction levels, or tasks with different dependencies. Do not split merely
+   to make files short.
+7. Keep each PRD at or below 750 physical lines and all checkboxes truthful. New
+   and materially revised PRDs start with status `Draft`, `Review Status: DRAFT`,
+   and `Review Count: 0`; `$prd-review` owns subsequent review-state changes.
+8. Run `scripts/prd-index` and `scripts/prd-check` before handing off.
+
+Do not implement product code while using this skill unless the user separately
+authorizes implementation.

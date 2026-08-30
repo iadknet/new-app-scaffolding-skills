@@ -1,0 +1,29 @@
+#!/bin/sh
+set -eu
+
+require_tools=0
+if [ "${1:-}" = --require-tools ]; then
+  require_tools=1
+  shift
+fi
+[ "$#" -eq 0 ] || { printf 'Usage: scripts/quality-check [--require-tools]\n' >&2; exit 2; }
+
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  git diff --check
+  git diff --cached --check
+fi
+
+actionlint=.tools/bin/actionlint
+shellcheck=.tools/bin/shellcheck
+if [ ! -x "$actionlint" ] || [ ! -x "$shellcheck" ]; then
+  if [ "$require_tools" -eq 1 ]; then
+    printf 'quality-check: pinned quality tools are missing; run make setup\n' >&2
+    exit 1
+  fi
+  printf 'quality-check: pinned tools are not installed; using reduced checks. Run make setup for ShellCheck and actionlint.\n'
+  exit 0
+fi
+
+find scripts .githooks -type f -exec "$shellcheck" --shell=sh --external-sources {} +
+"$actionlint" -shellcheck="$shellcheck"
+printf 'Repository quality validation passed.\n'
