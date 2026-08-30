@@ -95,5 +95,8 @@ make test-distribution
 The integration target downloads the pinned release archives and Python tools,
 then verifies their executable layouts, hook installation, and end-to-end
 detection behavior.
+Cisco AI Skill Scanner runs with deterministic analyzers in `make check`,
+pre-commit, and a dedicated GitHub Actions job; LLM analysis is not enabled by
+default.
 `test-distribution` installs a local bootstrap copy through `npx skills` and
 verifies the installed initializer's generated project.

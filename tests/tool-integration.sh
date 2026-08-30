@@ -49,6 +49,13 @@ make setup
 }
 make check >/dev/null
 
+cp -R "$root/tests/fixtures/malicious-skill" .agents/skills/malicious-fixture
+if scripts/skill-check --require-tools >/dev/null 2>&1; then
+  printf 'tool-integration: Cisco AI Skill Scanner accepted the malicious skill fixture\n' >&2
+  exit 1
+fi
+rm -rf .agents/skills/malicious-fixture
+
 cat >scripts/shellcheck-failure <<'EOF'
 #!/bin/sh
 value=$1
@@ -98,4 +105,4 @@ if make audit >/dev/null 2>&1; then
   exit 1
 fi
 
-printf 'Pinned tools, pre-commit, staged secrets, and history scan passed.\n'
+printf 'Pinned tools, pre-commit, skill security, staged secrets, and history scan passed.\n'

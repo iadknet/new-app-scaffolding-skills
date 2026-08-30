@@ -43,6 +43,8 @@ other non-merge commits under Changed.
 Run `make help` for the complete interface. `check`, `audit`, `precommit`, and
 `prd-check` retain stable meanings. Before setup, `check` runs dependency-free
 validation and clearly reports that extended checks were skipped. After setup,
-it also runs pinned ShellCheck and actionlint. `run`, `build`, `test`, `lint`,
+it also runs pinned ShellCheck, actionlint, and Cisco AI Skill Scanner. The
+scanner uses deterministic behavioral and trigger analysis and blocks HIGH or
+CRITICAL findings; LLM analysis is not enabled. `run`, `build`, `test`, `lint`,
 `format`, and `clean` intentionally remain successful placeholders until the
 selected-stack PRD replaces them.

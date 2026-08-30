@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help setup precommit prd-check check audit changelog run build test lint format clean
+.PHONY: help setup precommit prd-check skill-check check audit changelog run build test lint format clean
 
 help: ## Show the stable project command interface.
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  %-12s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -8,6 +8,7 @@ help: ## Show the stable project command interface.
 setup: ## Install pinned local tools and configure pre-commit hooks.
 	@scripts/install-gitleaks
 	@scripts/install-quality-tools
+	@scripts/install-skill-scanner
 	@scripts/install-pre-commit
 	@printf 'Setup complete. Git hooks use the pre-commit framework.\n'
 
@@ -17,10 +18,14 @@ precommit: ## Validate staged PRDs, repository quality, and secrets.
 prd-check: ## Validate all active and archived PRD sets.
 	@scripts/prd-check
 
+skill-check: ## Scan all project skills for high-severity security findings.
+	@scripts/skill-check
+
 check: ## Run PRD, repository policy, and quality validation.
 	@scripts/prd-check
 	@scripts/policy-check
 	@scripts/quality-check
+	@scripts/skill-check
 
 audit: ## Scan the full repository and Git history for secrets.
 	@scripts/secret-scan history

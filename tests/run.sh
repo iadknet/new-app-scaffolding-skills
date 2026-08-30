@@ -63,7 +63,7 @@ init() {
 project="$tmp/project with spaces"
 init --name 'Example & Tools' "$project" >/dev/null
 for expected in AGENTS.md CHANGELOG.md CLAUDE.md Makefile README.md SECURITY.md .pre-commit-config.yaml \
-  scripts/changelog scripts/prd-check scripts/install-pre-commit \
+  scripts/changelog scripts/prd-check scripts/skill-check scripts/install-pre-commit \
   docs/prds/active/project-foundation/master-prd.md .github/workflows/ci.yml; do
   assert_file "$project/$expected"
 done

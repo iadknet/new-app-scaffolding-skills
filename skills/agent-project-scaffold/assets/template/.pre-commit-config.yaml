@@ -9,3 +9,10 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+      - id: skill-scanner
+        name: Cisco AI Skill Scanner
+        entry: scripts/skill-check --require-tools
+        language: system
+        pass_filenames: false
+        require_serial: true
+        always_run: true
