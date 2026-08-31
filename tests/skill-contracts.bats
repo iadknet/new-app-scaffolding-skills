@@ -43,3 +43,13 @@ frontmatter_value() {
     printf '%s\n' "$description" | grep -Eq 'do not|does not|not retrofit'
   done
 }
+
+@test "public repository readiness skill has a direct documentation boundary" {
+  skill="$root/skills/agent-project-scaffold/assets/project-skills/public-repo-readiness/SKILL.md"
+  reference="$root/skills/agent-project-scaffold/assets/project-skills/public-repo-readiness/references/public-repository-checklist.md"
+
+  [ "$(frontmatter_value name "$skill")" = public-repo-readiness ]
+  [ -f "$reference" ]
+  grep -Fq 'does not replace the PRD workflow' "$skill"
+  grep -Fq 'Do not change repository visibility' "$skill"
+}
