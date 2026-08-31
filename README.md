@@ -14,7 +14,7 @@ project:
   script creates a new project from `assets/template/` and installs its private
   `assets/project-skills/` bundle into the selected agents' native project paths.
 - `bin/init-agent-project` is a wrapper around that same bundled initializer.
-- `tests/` validates both the initializer and the generated output.
+- `tests/` validates both the initializer and the generated output with Bats-core.
 - The root `Makefile` develops and tests the distributor. The `Makefile` under
   the skill's bundled template becomes the generated project's command interface.
 
@@ -170,9 +170,14 @@ passes; the exact procedure is in [RELEASING.md](RELEASING.md).
 ## Development
 
 ```sh
+make setup
 make check
 make test
 ```
+
+`make setup` is the one-time development bootstrap. Test and quality targets use
+the pinned local Bats-core and analysis tools and fail with an actionable error
+until setup has installed them.
 
 Real external-tool integration is separate from the offline default test suite:
 

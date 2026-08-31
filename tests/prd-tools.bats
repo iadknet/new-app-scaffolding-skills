@@ -1,9 +1,11 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env bats
 
-root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
-tmp=$(mktemp -d "${TMPDIR:-/tmp}/agent-scaffold-prd-tools.XXXXXX")
-trap 'rm -rf "$tmp"' EXIT HUP INT TERM
+load test_helper.bash
+
+setup() {
+bats_require_minimum_version 1.14.0
+root=$(repo_root)
+tmp="$BATS_TEST_TMPDIR"
 project=$tmp/project
 template=$root/skills/agent-project-scaffold/assets/template
 
@@ -11,8 +13,14 @@ cp -R "$template" "$project"
 chmod +x "$project"/scripts/*
 cd "$project"
 
+create_prd() {
+  scripts/prd-new ship-feature design-api implement-api >/dev/null
+}
+}
+
+@test "PRD tools create a valid ordered project" {
 scripts/prd-check
-scripts/prd-new ship-feature design-api implement-api >/dev/null
+create_prd
 [ -f docs/prds/active/ship-feature/stage-01-design-api.md ] || {
   printf 'prd-tools: first stage was not created\n' >&2
   exit 1
@@ -34,23 +42,29 @@ grep -Fq 'Affected durable documentation is created, updated, or synchronized, o
   exit 1
 }
 scripts/prd-check
+}
 
+@test "PRD validation rejects a missing documentation section" {
+create_prd
 cp docs/prds/active/ship-feature/stage-01-design-api.md "$tmp/stage-backup.md"
 sed '/^## Documentation Impact and Synchronization$/d' "$tmp/stage-backup.md" >docs/prds/active/ship-feature/stage-01-design-api.md
 if scripts/prd-check >/dev/null 2>&1; then
   printf 'prd-tools: missing documentation section was accepted\n' >&2
   exit 1
 fi
-cp "$tmp/stage-backup.md" docs/prds/active/ship-feature/stage-01-design-api.md
+}
 
+@test "PRD validation rejects a missing documentation gate" {
+create_prd
+cp docs/prds/active/ship-feature/stage-01-design-api.md "$tmp/stage-backup.md"
 sed '/^- \[ \] Affected durable documentation is created, updated, or synchronized, or a no-change rationale is recorded\.$/d' "$tmp/stage-backup.md" >docs/prds/active/ship-feature/stage-01-design-api.md
 if scripts/prd-check >/dev/null 2>&1; then
   printf 'prd-tools: missing documentation gate was accepted\n' >&2
   exit 1
 fi
-cp "$tmp/stage-backup.md" docs/prds/active/ship-feature/stage-01-design-api.md
-scripts/prd-check
+}
 
+@test "PRD creation rejects duplicate stage names without partial output" {
 if scripts/prd-new duplicate-stages repeated repeated >/dev/null 2>&1; then
   printf 'prd-tools: duplicate stage names were accepted\n' >&2
   exit 1
@@ -59,5 +73,4 @@ fi
   printf 'prd-tools: duplicate stages left partial output\n' >&2
   exit 1
 }
-
-printf 'PRD template validation and generation smoke test passed.\n'
+}

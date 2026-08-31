@@ -1,6 +1,11 @@
 {
   "checksums": [
     {
+      "id": "github_archive/github.com/bats-core/bats-core/v1.14.0",
+      "checksum": "BB537B70B15B732F6D8827DD6578E3D8CE166636CE1F18EA9A074184FCCE9177",
+      "algorithm": "sha256"
+    },
+    {
       "id": "github_release/github.com/gitleaks/gitleaks/v8.30.1/gitleaks_8.30.1_darwin_arm64.tar.gz",
       "checksum": "B40AB0AE55C505963E365F271A8D3846EFBC170AA17F2607F13DF610A9AEB6A5",
       "algorithm": "sha256"
