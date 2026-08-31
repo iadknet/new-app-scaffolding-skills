@@ -24,14 +24,15 @@ Python tool resolution uses a seven-day release-age window.
 
 ## Workflow skills
 
-The initializer has installed four project-scoped workflow skills for the
+The initializer has installed five project-scoped workflow skills for the
 agent(s) selected during project creation. `make setup` installs quality and
 security tools through Aqua, not skills.
 
 Use your agent's skill interface to inspect and invoke `project-workflow`,
-`prd-create`, `prd-review`, and `prd-implement`. Start with
-`project-workflow` when the current PRD state should select the appropriate
-phase.
+`prd-create`, `prd-review`, `prd-implement`, and `public-repo-readiness`.
+Start with `project-workflow` when the current PRD state should select the
+appropriate phase. Use `public-repo-readiness` to prepare the repository's
+public-facing documentation and community files without changing product work.
 
 ## Changelog
 

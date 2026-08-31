@@ -69,7 +69,7 @@ vulnerability-reporting guidance.
 
 ## Skills
 
-The bootstrap skill creates the project; four private runtime skills are then
+The bootstrap skill creates the project; five private runtime skills are then
 installed only for the agents selected during initialization.
 
 | Skill | Scope | Use it for |
@@ -80,6 +80,7 @@ installed only for the agents selected during initialization.
 | `prd-create` | Generated project | Research, create, or materially revise a master PRD and dependency-ordered stage PRDs without implementing product code. |
 | `prd-review` | Generated project | Review a PRD for implementation readiness or review completed code, reporting P1/P2/P3 findings and enforcing revision gates. |
 | `prd-implement` | Generated project | Implement an approved PRD in stage order, maintain truthful status and verification evidence, synchronize documentation, and prepare it for final review. |
+| `public-repo-readiness` | Generated project | Prepare public-facing documentation, badges, licensing, and applicable community files without changing product or repository-admin configuration. |
 
 ## PRD workflow
 

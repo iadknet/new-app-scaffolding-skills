@@ -7,6 +7,8 @@ All notable changes are generated from Git history at release time.
 ### Added
 
 - Add the agent project scaffolding skill.
+- Add a generated-project skill for preparing public-facing documentation,
+  badges, licensing, and community files.
 - Add a lifecycle-enforced documentation impact and synchronization gate to
   generated PRDs and their create, review, and implementation skills.
 - Add the standard pre-commit framework to distributor and generated-project

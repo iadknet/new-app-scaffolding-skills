@@ -24,7 +24,7 @@ initializer=$installed/.agents/skills/agent-project-scaffold/scripts/init-agent-
 
 "$initializer" --agent codex --agent claude-code "$project" >/dev/null
 
-for skill in prd-create prd-review prd-implement project-workflow; do
+for skill in prd-create prd-review prd-implement project-workflow public-repo-readiness; do
   [ -f "$project/.agents/skills/$skill/SKILL.md" ] || {
     printf 'distribution-install: missing Codex skill %s\n' "$skill" >&2
     exit 1
@@ -34,6 +34,11 @@ for skill in prd-create prd-review prd-implement project-workflow; do
     exit 1
   }
 done
+
+[ -f "$project/.agents/skills/public-repo-readiness/references/public-repository-checklist.md" ] || {
+  printf 'distribution-install: missing public repository readiness reference\n' >&2
+  exit 1
+}
 
 [ ! -e "$project/.agents/skills/agent-project-scaffold" ] || {
   printf 'distribution-install: bootstrap skill leaked into generated project\n' >&2

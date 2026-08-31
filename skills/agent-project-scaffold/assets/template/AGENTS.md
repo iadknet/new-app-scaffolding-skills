@@ -16,6 +16,10 @@
   a concrete no-change rationale.
 - Run the verification declared by a stage after changing it. Run `make check`
   before declaring project work complete.
+- `public-repo-readiness` may directly update repository presentation,
+  licensing, community, support, and contribution files after it confirms the
+  required factual choices. This narrow exception does not cover product code,
+  dependencies, GitHub Actions workflows, repository settings, or remote state.
 - Do not archive a PRD manually; use `scripts/prd-archive <slug>`.
 - Never introduce or invoke Superpowers. This repository's canonical workflows
   are the project-scoped skills installed by its initializer.
@@ -29,3 +33,5 @@
 - Use `prd-implement` to execute a reviewed PRD in dependency order.
 - Use `project-workflow` when the correct phase should be inferred from the
   current PRD state. Use the invocation syntax of the active agent.
+- Use `public-repo-readiness` for the direct documentation and community-file
+  preparation allowed above when preparing the repository for public use.

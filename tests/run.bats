@@ -80,10 +80,13 @@ if grep -RE '__[A-Z_]+__' "$project" --exclude-dir=.git >/dev/null 2>&1; then
 fi
 [ "$(git -C "$project" symbolic-ref --short HEAD)" = main ] || fail 'initial branch is not main'
 assert_fails git -C "$project" rev-parse --verify HEAD
-for skill in prd-create prd-review prd-implement project-workflow; do
+for skill in prd-create prd-review prd-implement project-workflow public-repo-readiness; do
   assert_file "$project/.agents/skills/$skill/SKILL.md"
   assert_file "$project/.claude/skills/$skill/SKILL.md"
 done
+[ -f "$project/.agents/skills/public-repo-readiness/references/public-repository-checklist.md" ] || fail 'missing public repository readiness reference'
+grep -Fq 'five project-scoped workflow skills' "$project/README.md" || fail 'generated README has stale skill count'
+grep -Fq 'public-repo-readiness' "$project/AGENTS.md" || fail 'generated agent instructions lack public repository readiness boundary'
 [ ! -e "$project/.agents/skills/agent-project-scaffold" ] || fail 'bootstrap skill leaked into generated project'
 pass 'initializes a rendered project with only selected runtime skills'
 }
