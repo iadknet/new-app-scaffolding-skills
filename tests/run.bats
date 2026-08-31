@@ -114,5 +114,8 @@ assert_fails "$root/bin/init-agent-project" --agent codex "$tmp/linked-target"
 failed="$tmp/failed-install"
 assert_fails env MOCK_NPX_FAIL=1 PATH="$mock_bin:$PATH" "$root/bin/init-agent-project" --agent codex "$failed"
 [ ! -e "$failed" ] || fail 'failed installer left a target directory'
+invalid="$tmp/invalid-agent"
+assert_fails env PATH="$mock_bin:$PATH" "$root/bin/init-agent-project" --agent unsupported "$invalid"
+[ ! -e "$invalid" ] || fail 'invalid agent left a target directory'
 pass 'rejects unsafe targets and rolls back a failed install'
 }

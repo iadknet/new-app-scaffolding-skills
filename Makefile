@@ -31,7 +31,7 @@ check: require-bats ## Run distribution quality checks and the local test suite.
 	@scripts/skill-check
 
 test: require-bats ## Run focused offline tests for initialization and template behavior.
-	@$(BATS) tests/run.bats tests/prd-tools.bats tests/policy-check.bats tests/dependency-policy.bats tests/dependency-audit.bats tests/changelog.bats tests/skill-check.bats tests/aqua-config.bats tests/go-scaffold.bats
+	@$(BATS) tests/run.bats tests/prd-tools.bats tests/policy-check.bats tests/dependency-policy.bats tests/dependency-audit.bats tests/changelog.bats tests/skill-check.bats tests/skill-contracts.bats tests/aqua-config.bats tests/go-scaffold.bats
 
 test-integration: require-bats ## Verify pinned external tools end to end.
 	@$(BATS) tests/tool-integration.bats

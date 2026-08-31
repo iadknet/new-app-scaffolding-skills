@@ -1,0 +1,31 @@
+#!/bin/sh
+set -eu
+
+usage() {
+  printf 'Usage: release-tag-check v<major>.<minor>.<patch>\n' >&2
+  exit 2
+}
+
+[ "$#" -eq 1 ] || usage
+version=$1
+printf '%s\n' "$version" | grep -Eq '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' || usage
+
+root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
+cd "$root"
+
+grep -Eq "^## \[$version\] - [0-9]{4}-[0-9]{2}-[0-9]{2}$" CHANGELOG.md || {
+  printf 'release-tag-check: CHANGELOG.md has no dated %s release section\n' "$version" >&2
+  exit 1
+}
+
+tag_commit=$(git rev-list -n 1 "$version" 2>/dev/null) || {
+  printf 'release-tag-check: tag %s does not resolve\n' "$version" >&2
+  exit 1
+}
+head_commit=$(git rev-parse HEAD)
+[ "$tag_commit" = "$head_commit" ] || {
+  printf 'release-tag-check: tag %s does not point to HEAD\n' "$version" >&2
+  exit 1
+}
+
+printf 'Release tag %s is valid.\n' "$version"

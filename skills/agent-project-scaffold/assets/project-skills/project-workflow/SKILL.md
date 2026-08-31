@@ -1,6 +1,7 @@
 ---
 name: project-workflow
 description: Route repository work through PRD creation, readiness review, ordered implementation, final review, and archival based on the current PRD state.
+license: MIT
 ---
 
 # Project Workflow

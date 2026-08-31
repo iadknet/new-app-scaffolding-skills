@@ -139,24 +139,23 @@ its skills into an existing, non-empty repository.
 
 ## Install as an agent skill
 
-Install a released bootstrap skill with the multi-agent Agent Skills installer,
-selecting user/global scope so it can create a separate empty project:
+Until the first release is published, install a local checkout with the
+multi-agent Agent Skills installer:
 
 ```sh
-npx skills@1.5.23 add iadknet/new_app_scaffolding_skills#v0.1.0 \
-  --skill agent-project-scaffold \
-  --global
+npx skills@1.5.23 add . --skill agent-project-scaffold --global
 ```
 
 Then ask the agent to use `agent-project-scaffold` to create a named project at
 an explicit target directory and name the target agents. The installed skill
 runs the same bundled initializer as `bin/init-agent-project`.
 
-`v0.1.0` is the first planned release; until it exists, use a local checkout for
-development:
+After `v0.1.0` is published, install its immutable source revision with:
 
 ```sh
-npx skills@1.5.23 add . --skill agent-project-scaffold --global
+npx skills@1.5.23 add iadknet/new_app_scaffolding_skills#v0.1.0 \
+  --skill agent-project-scaffold \
+  --global
 ```
 
 ## Releases
@@ -194,3 +193,9 @@ pre-commit, and a dedicated GitHub Actions job; LLM analysis is not enabled by
 default.
 `test-distribution` installs a local bootstrap copy through `npx skills` and
 verifies the installed initializer's generated project.
+
+## License
+
+The scaffold distributor and its bundled skills are available under the
+[MIT License](LICENSE). Generated application projects do not receive an
+application license automatically; their owners must choose one explicitly.

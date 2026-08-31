@@ -1,6 +1,7 @@
 ---
 name: agent-project-scaffold
 description: Create a new stack-neutral software project with portable agent workflow skills, PRD tooling, repository checks, and security defaults. Use when the user asks to initialize or scaffold a new agent-ready project; do not use to merge the scaffold into an existing non-empty repository.
+license: MIT
 ---
 
 # Scaffold an Agent-Ready Project

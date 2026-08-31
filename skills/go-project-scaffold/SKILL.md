@@ -1,6 +1,7 @@
 ---
 name: go-project-scaffold
 description: Create a new, agent-ready Go command project with conventional layout, deterministic quality gates, security scanning, and GitHub Actions CI. Use when a user asks to initialize a new Go project; do not retrofit a non-empty repository.
+license: MIT
 ---
 
 # Scaffold an Agent-Ready Go Project

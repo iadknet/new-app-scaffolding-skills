@@ -14,8 +14,9 @@ git -C "$project" config user.name 'Changelog Test'
 git -C "$project" config user.email 'changelog-test@example.invalid'
 mkdir "$project/scripts"
 cp "$root/scripts/changelog" "$project/scripts/changelog"
+cp "$root/scripts/release-tag-check" "$project/scripts/release-tag-check"
 cp "$root/skills/agent-project-scaffold/assets/template/CHANGELOG.md" "$project/CHANGELOG.md"
-chmod +x "$project/scripts/changelog"
+chmod +x "$project/scripts/changelog" "$project/scripts/release-tag-check"
 
 create_first_release() {
   touch "$project/first"
@@ -23,6 +24,7 @@ create_first_release() {
   git -C "$project" commit -m 'feat: add first feature' >/dev/null
   (cd "$project" && scripts/changelog v0.1.0)
 }
+
 }
 
 @test "changelog generates an initial release" {
@@ -50,6 +52,25 @@ grep -Fq 'fix: correct generated output' "$project/CHANGELOG.md"
 grep -Fq '## [v0.1.0] -' "$project/CHANGELOG.md"
 if (cd "$project" && scripts/changelog v0.1.1 >/dev/null 2>&1); then
   printf 'changelog: duplicate release section was accepted\n' >&2
+  exit 1
+fi
+}
+
+@test "release tag check requires a matching changelog section at HEAD" {
+create_first_release
+git -C "$project" add CHANGELOG.md
+git -C "$project" commit -m 'chore: prepare v0.1.0' >/dev/null
+git -C "$project" tag v0.1.0
+(
+  cd "$project"
+  scripts/release-tag-check v0.1.0
+)
+
+touch "$project/later"
+git -C "$project" add later
+git -C "$project" commit -m 'chore: later commit' >/dev/null
+if (cd "$project" && scripts/release-tag-check v0.1.0 >/dev/null 2>&1); then
+  printf 'release-tag-check: accepted a tag that did not point to HEAD\n' >&2
   exit 1
 fi
 }

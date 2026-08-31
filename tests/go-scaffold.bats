@@ -66,3 +66,12 @@ if PATH="$mock_bin:$PATH" "$root/bin/init-go-project" --agent codex "$tmp/missin
   exit 1
 fi
 }
+
+@test "Go scaffold rolls back an unsupported agent" {
+  target=$tmp/unsupported-agent
+  if PATH="$mock_bin:$PATH" "$root/bin/init-go-project" --module example.com/acme/widget --agent unsupported "$target" >/dev/null 2>&1; then
+    printf '%s\n' 'initializer accepted an unsupported agent' >&2
+    exit 1
+  fi
+  [ ! -e "$target" ]
+}

@@ -23,9 +23,14 @@ jobs:
         with:
           node-version: '22.20.0'
           package-manager-cache: false
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: skills/go-project-scaffold/assets/template/go.mod
+          cache: false
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: '0.12.3'
+          enable-cache: false
       - uses: aquaproj/aqua-installer@96a9bc20066c5bf5e275b41019cfc165b25f4e2e # v4.0.5
         with:
           aqua_version: v2.62.2
@@ -48,6 +53,7 @@ jobs:
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: '0.12.3'
+          enable-cache: false
       - uses: aquaproj/aqua-installer@96a9bc20066c5bf5e275b41019cfc165b25f4e2e # v4.0.5
         with:
           aqua_version: v2.62.2
@@ -63,6 +69,7 @@ jobs:
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           version: '0.12.3'
+          enable-cache: false
       - run: scripts/install-skill-scanner
       - run: scripts/skill-check --require-tools
 
@@ -93,3 +100,28 @@ jobs:
           advanced-security: false
           online-audits: false
           version: v1.29.0
+
+  ci-required:
+    name: CI Required
+    if: always()
+    needs:
+      - test
+      - tool-integration
+      - skill-security
+      - skills-distribution
+      - actions-security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify required jobs
+        run: |
+          test "${{ needs.test.result }}" = success
+          test "${{ needs.tool-integration.result }}" = success
+          test "${{ needs.skill-security.result }}" = success
+          test "${{ needs.skills-distribution.result }}" = success
+          test "${{ needs.actions-security.result }}" = success
+      - name: Validate release tag
+        if: startsWith(github.ref, 'refs/tags/')
+        run: scripts/release-tag-check "${GITHUB_REF_NAME}"

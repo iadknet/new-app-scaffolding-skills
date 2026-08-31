@@ -1,0 +1,32 @@
+name: Feature request
+description: Propose a focused improvement to a scaffold or its workflow.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: scaffold
+    attributes:
+      label: Affected area
+      options:
+        - agent-project-scaffold
+        - go-project-scaffold
+        - repository tooling
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve
+      description: Describe the user-visible problem rather than only a proposed implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
