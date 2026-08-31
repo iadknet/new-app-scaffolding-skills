@@ -18,7 +18,11 @@ git push origin v0.1.0
 
 `make changelog` groups `feat` commits under Added, `fix` commits under Fixed,
 and every other non-merge commit under Changed. Review the generated section
-before committing it.
+before committing it. The preparation commit must change only `CHANGELOG.md`
+and use the exact subject `chore: prepare v0.1.0` (substitute the version being
+released). `make release-check` verifies that the release section records every
+non-merge commit since the previous release exactly once, then runs the full
+test and distribution suite.
 
 The tag workflow validates that the SemVer tag resolves to the checked-out
 commit, has a matching dated changelog section, and passes the full test and

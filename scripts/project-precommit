@@ -1,6 +1,10 @@
 #!/bin/sh
 set -eu
 
+# Git exports repository-local variables to hooks. Do not let nested test
+# repositories inherit them and accidentally operate on this repository.
+unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX
+
 find bin scripts skills/agent-project-scaffold/scripts \
   skills/agent-project-scaffold/assets/template/scripts \
   skills/go-project-scaffold/scripts \
