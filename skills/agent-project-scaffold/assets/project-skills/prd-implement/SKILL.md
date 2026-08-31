@@ -1,6 +1,7 @@
 ---
 name: prd-implement
 description: Implement an active PRD that has passed readiness review, preserving stage order, truthful state, verification, final review, and archival gates.
+license: MIT
 ---
 
 # Implement a Reviewed PRD

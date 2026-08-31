@@ -1,6 +1,7 @@
 ---
 name: prd-review
 description: Review a PRD for readiness or review its completed implementation, with severity-ranked findings and enforced revision recursion.
+license: MIT
 ---
 
 # Review a PRD or Its Implementation

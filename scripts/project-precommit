@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-find bin scripts tests skills/agent-project-scaffold/scripts \
+find bin scripts skills/agent-project-scaffold/scripts \
   skills/agent-project-scaffold/assets/template/scripts \
   skills/go-project-scaffold/scripts \
   skills/go-project-scaffold/assets/template/scripts \

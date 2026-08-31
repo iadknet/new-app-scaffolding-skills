@@ -1,6 +1,7 @@
 ---
 name: prd-create
 description: Create or materially revise a master-and-stage PRD set for repository work that needs researched choices, decomposition, boundaries, and observable verification.
+license: MIT
 ---
 
 # Create a PRD Set
