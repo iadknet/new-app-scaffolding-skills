@@ -6,10 +6,8 @@ help: ## Show the stable project command interface.
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  %-12s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 setup: ## Install pinned local tools and configure pre-commit hooks.
-	@scripts/install-gitleaks
-	@scripts/install-quality-tools
+	@scripts/aqua install
 	@scripts/install-skill-scanner
-	@scripts/install-osv-scanner
 	@scripts/install-pre-commit
 	@printf 'Setup complete. Git hooks use the pre-commit framework.\n'
 

@@ -66,7 +66,7 @@ project="$tmp/project with spaces"
 init --name 'Example & Tools' "$project" >/dev/null
 for expected in AGENTS.md CHANGELOG.md CLAUDE.md Makefile README.md SECURITY.md .pre-commit-config.yaml \
   scripts/changelog scripts/prd-check scripts/skill-check scripts/install-pre-commit \
-  scripts/install-osv-scanner scripts/dependency-audit scripts/dependency-policy-check \
+  aqua.yaml aqua-checksums.json scripts/aqua scripts/dependency-audit scripts/dependency-policy-check \
   docs/prds/active/project-foundation/master-prd.md .github/workflows/ci.yml; do
   assert_file "$project/$expected"
 done

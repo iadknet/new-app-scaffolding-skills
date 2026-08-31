@@ -9,41 +9,29 @@ project=$tmp/project
 "$root/bin/init-agent-project" --agent codex --agent claude-code "$project" >/dev/null
 cd "$project"
 
-mock_bin=$tmp/mock-bin
-mkdir "$mock_bin"
-cat >"$mock_bin/curl" <<'EOF'
-#!/bin/sh
-set -eu
-
-output=
-while [ "$#" -gt 0 ]; do
-  case $1 in
-    -o) output=$2; shift 2 ;;
-    *) shift ;;
-  esac
-done
-[ -n "$output" ] || exit 2
-printf 'deliberately invalid archive' >"$output"
-EOF
-chmod +x "$mock_bin/curl"
-if PATH="$mock_bin:$PATH" scripts/install-gitleaks >/dev/null 2>&1; then
-  printf 'tool-integration: invalid Gitleaks archive was accepted\n' >&2
+command -v aqua >/dev/null 2>&1 || {
+  printf 'tool-integration: Aqua is required; install Aqua v2.60.1 or newer\n' >&2
   exit 1
-fi
-if PATH="$mock_bin:$PATH" scripts/install-quality-tools >/dev/null 2>&1; then
-  printf 'tool-integration: invalid quality-tool archive was accepted\n' >&2
-  exit 1
-fi
-if PATH="$mock_bin:$PATH" scripts/install-osv-scanner >/dev/null 2>&1; then
-  printf 'tool-integration: invalid OSV-Scanner binary was accepted\n' >&2
-  exit 1
-fi
-[ ! -e .tools/bin/gitleaks ] || { printf 'tool-integration: invalid scanner was installed\n' >&2; exit 1; }
-[ ! -e .tools/bin/actionlint ] || { printf 'tool-integration: invalid actionlint was installed\n' >&2; exit 1; }
-[ ! -e .tools/bin/shellcheck ] || { printf 'tool-integration: invalid ShellCheck was installed\n' >&2; exit 1; }
-[ ! -e .tools/bin/osv-scanner ] || { printf 'tool-integration: invalid OSV-Scanner was installed\n' >&2; exit 1; }
+}
 
 make setup
+[ -x .tools/aqua/bin/gitleaks ] || { printf 'tool-integration: Gitleaks was not installed by Aqua\n' >&2; exit 1; }
+[ -x .tools/aqua/bin/actionlint ] || { printf 'tool-integration: actionlint was not installed by Aqua\n' >&2; exit 1; }
+[ -x .tools/aqua/bin/shellcheck ] || { printf 'tool-integration: ShellCheck was not installed by Aqua\n' >&2; exit 1; }
+[ -x .tools/aqua/bin/osv-scanner ] || { printf 'tool-integration: OSV-Scanner was not installed by Aqua\n' >&2; exit 1; }
+
+# A fresh Aqua root must not install anything when its checksum lock entries
+# are absent. This verifies the wrapper's checksum enforcement, rather than
+# merely checking that the configuration requests it.
+mv aqua-checksums.json aqua-checksums.json.valid
+printf '{\n  "checksums": []\n}\n' >aqua-checksums.json
+rm -rf .tools/aqua
+if scripts/aqua install >/dev/null 2>&1; then
+  printf 'tool-integration: Aqua accepted a checksum lockfile with no entries\n' >&2
+  exit 1
+fi
+mv aqua-checksums.json.valid aqua-checksums.json
+
 [ -x .git/hooks/pre-commit ] || {
   printf 'tool-integration: pre-commit framework hook was not installed\n' >&2
   exit 1

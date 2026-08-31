@@ -40,7 +40,7 @@ work rather than being implied by the foundation.
 
 | Area | Practice implemented by the template | Enforcement |
 | --- | --- | --- |
-| Tool acquisition | Security and quality tools are version-pinned. Downloaded release archives are verified against platform-specific SHA-256 checksums before installation. | `make setup` and the `scripts/install-*` installers |
+| Tool acquisition | Security and quality tools are version-pinned in Aqua and verified against committed SHA-256 checksums. | `make setup`, `aqua.yaml`, and `aqua-checksums.json` |
 | Dependency integrity | Node and Python dependency roots require a committed lockfile, an exact supported package-manager version, and consistent workspace ownership. | `scripts/dependency-policy-check` through `make check` |
 | Dependency freshness | New npm, pnpm, Yarn, and uv resolutions must observe a seven-day package-age gate, paired with a seven-day Dependabot cooldown. | Native package-manager configuration checks and `.github/dependabot.yml` validation |
 | Vulnerability management | Supported lockfiles are scanned for known vulnerabilities. Exceptions must name one vulnerability and include a reason and expiration; broad package overrides are rejected. | OSV-Scanner through `make dependency-audit` and `make check` |
@@ -118,6 +118,8 @@ bin/init-agent-project --name "Example Project" \
   --agent codex --agent claude-code \
   ../example-project
 cd ../example-project
+# One-time bootstrap: https://aquaproj.github.io/docs/install/
+brew install aqua # macOS with Homebrew
 make setup
 ```
 
@@ -126,8 +128,11 @@ Provide one or more `--agent` values supported by the pinned `skills` CLI. The
 initializer requires POSIX shell tools, Git, Node.js 22.20+, and network access
 for the pinned installer. It builds and validates a staging project before it
 replaces the target, creates a local `main` branch, and never creates a commit
-or remote. `make setup` additionally requires `uv`; it installs pinned quality
-and security tools and configures the standard pre-commit framework.
+or remote. `make setup` additionally requires [Aqua](https://aquaproj.github.io/docs/install/)
+v2.60.1+ and `uv`. Install Aqua once using its platform-specific instructions
+(for example, `brew install aqua` on macOS with Homebrew); Aqua then installs
+the project tools from the committed `aqua.yaml` and `aqua-checksums.json`, and
+setup configures the standard pre-commit framework.
 
 This initializer supports new projects only. It does not install the scaffold or
 its skills into an existing, non-empty repository.
@@ -176,8 +181,8 @@ make test-integration
 make test-distribution
 ```
 
-The integration target downloads the pinned release archives and Python tools,
-then verifies their executable layouts, hook installation, and end-to-end
+The integration target installs the pinned Aqua release-binary tools and Python
+tools, then verifies their executable layouts, hook installation, and end-to-end
 detection behavior.
 Cisco AI Skill Scanner runs with deterministic analyzers in `make check`,
 pre-commit, and a dedicated GitHub Actions job; LLM analysis is not enabled by

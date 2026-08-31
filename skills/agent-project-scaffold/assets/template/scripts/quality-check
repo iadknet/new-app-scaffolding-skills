@@ -13,8 +13,8 @@ if git rev-parse --git-dir >/dev/null 2>&1; then
   git diff --cached --check
 fi
 
-actionlint=.tools/bin/actionlint
-shellcheck=.tools/bin/shellcheck
+actionlint=.tools/aqua/bin/actionlint
+shellcheck=.tools/aqua/bin/shellcheck
 if [ ! -x "$actionlint" ] || [ ! -x "$shellcheck" ]; then
   if [ "$require_tools" -eq 1 ]; then
     printf 'quality-check: pinned quality tools are missing; run make setup\n' >&2
@@ -24,6 +24,6 @@ if [ ! -x "$actionlint" ] || [ ! -x "$shellcheck" ]; then
   exit 0
 fi
 
-find scripts -type f -exec "$shellcheck" --shell=sh --external-sources {} +
-"$actionlint" -shellcheck="$shellcheck"
+find scripts -type f -exec scripts/aqua exec shellcheck --shell=sh --external-sources {} +
+scripts/aqua exec actionlint -shellcheck="$shellcheck"
 printf 'Repository quality validation passed.\n'

@@ -13,8 +13,8 @@ if git rev-parse --git-dir >/dev/null 2>&1; then
   git diff --cached --check
 fi
 
-actionlint=.tools/bin/actionlint
-shellcheck=.tools/bin/shellcheck
+actionlint=.tools/aqua/bin/actionlint
+shellcheck=.tools/aqua/bin/shellcheck
 if [ ! -x "$actionlint" ] || [ ! -x "$shellcheck" ]; then
   if [ "$require_tools" -eq 1 ]; then
     printf 'distribution-quality: pinned quality tools are missing; run make setup\n' >&2
@@ -25,6 +25,6 @@ if [ ! -x "$actionlint" ] || [ ! -x "$shellcheck" ]; then
 fi
 
 find bin scripts tests skills/agent-project-scaffold/scripts skills/agent-project-scaffold/assets/template/scripts skills/go-project-scaffold/scripts skills/go-project-scaffold/assets/template/scripts skills/go-project-scaffold/assets/template/.githooks \
-  -type f -perm -111 -exec "$shellcheck" --shell=sh --external-sources {} +
-"$actionlint" -shellcheck="$shellcheck" .github/workflows/*.yml skills/agent-project-scaffold/assets/template/.github/workflows/*.yml skills/go-project-scaffold/assets/template/.github/workflows/*.yml
+  -type f -perm -111 -exec scripts/aqua exec shellcheck --shell=sh --external-sources {} +
+scripts/aqua exec actionlint -shellcheck="$shellcheck" .github/workflows/*.yml skills/agent-project-scaffold/assets/template/.github/workflows/*.yml skills/go-project-scaffold/assets/template/.github/workflows/*.yml
 printf 'Distribution quality validation passed.\n'

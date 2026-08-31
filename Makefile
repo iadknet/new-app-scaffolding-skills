@@ -6,7 +6,7 @@ help: ## Show development targets.
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 setup: ## Install pinned development, pre-commit, and security tools.
-	@skills/agent-project-scaffold/assets/template/scripts/install-quality-tools
+	@scripts/aqua install
 	@scripts/install-skill-scanner
 	@scripts/install-pre-commit
 
@@ -33,6 +33,7 @@ test: ## Run focused offline tests for initialization and template behavior.
 	@tests/dependency-audit.sh
 	@tests/changelog.sh
 	@tests/skill-check.sh
+	@tests/aqua-config.sh
 	@tests/go-scaffold.sh
 
 test-integration: ## Verify pinned external tools end to end.
