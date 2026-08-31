@@ -1,9 +1,11 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env bats
 
-root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
-tmp=$(mktemp -d "${TMPDIR:-/tmp}/agent-scaffold-dependency-policy.XXXXXX")
-trap 'rm -rf "$tmp"' EXIT HUP INT TERM
+load test_helper.bash
+
+setup() {
+bats_require_minimum_version 1.14.0
+root=$(repo_root)
+tmp="$BATS_TEST_TMPDIR"
 template=$root/skills/agent-project-scaffold/assets/template
 mock_bin=$tmp/mock-bin
 mkdir "$mock_bin"
@@ -111,7 +113,9 @@ updates:
       default-days: 7
 EOF
 }
+}
 
+@test "npm dependency policy enforces versions, lockfiles, and age gates" {
 npm_project=$(create_project npm)
 cat >"$npm_project/package.json" <<'EOF'
 {"name":"fixture","packageManager":"npm@11.10.0"}
@@ -133,7 +137,9 @@ rm "$npm_project/npm-shrinkwrap.json"
 touch "$npm_project/package-lock.json"
 rm "$npm_project/.npmrc"
 expect_failure "$npm_project" 'npm policy accepted a missing age gate'
+}
 
+@test "pnpm dependency policy supports projects and workspaces" {
 pnpm_project=$(create_project pnpm)
 cat >"$pnpm_project/package.json" <<'EOF'
 {"name":"fixture","packageManager":"pnpm@10.16.0"}
@@ -168,7 +174,9 @@ cat >"$pnpm_workspace_project/packages/member/package.json" <<'EOF'
 EOF
 write_dependabot "$pnpm_workspace_project" npm
 expect_success "$pnpm_workspace_project" 'pnpm workspace with a root lockfile was rejected'
+}
 
+@test "Yarn dependency policy rejects competing lockfiles" {
 yarn_project=$(create_project yarn)
 cat >"$yarn_project/package.json" <<'EOF'
 {"name":"fixture","packageManager":"yarn@4.12.0"}
@@ -179,7 +187,9 @@ write_dependabot "$yarn_project" npm
 expect_success "$yarn_project" 'compliant Yarn policy was rejected'
 touch "$yarn_project/package-lock.json"
 expect_failure "$yarn_project" 'Node policy accepted competing lockfiles'
+}
 
+@test "nested npm projects are validated at their dependency root" {
 nested_project=$(create_project nested)
 mkdir -p "$nested_project/apps/web"
 cat >"$nested_project/apps/web/package.json" <<'EOF'
@@ -191,7 +201,9 @@ write_dependabot "$nested_project" npm /apps/web
 expect_success "$nested_project" 'nested npm project was not validated'
 rm "$nested_project/apps/web/.npmrc"
 expect_failure "$nested_project" 'nested npm project bypassed dependency policy'
+}
 
+@test "npm workspaces accept managed members and reject unmanaged packages" {
 workspace_project=$(create_project workspace)
 cat >"$workspace_project/package.json" <<'EOF'
 {"name":"fixture","packageManager":"npm@11.10.0","workspaces":["packages/*"]}
@@ -217,7 +229,9 @@ cat >"$unmanaged_nested_project/packages/member/package.json" <<'EOF'
 EOF
 write_dependabot "$unmanaged_nested_project" npm
 expect_failure "$unmanaged_nested_project" 'nested package without a lockfile or workspace declaration was accepted'
+}
 
+@test "uv dependency policy supports projects and workspaces" {
 uv_project=$(create_project uv)
 cat >"$uv_project/pyproject.toml" <<'EOF'
 [project]
@@ -257,7 +271,9 @@ version = "0.1.0"
 EOF
 write_dependabot "$uv_workspace_project" uv
 expect_success "$uv_workspace_project" 'uv workspace with a root lockfile was rejected'
+}
 
+@test "OSV exceptions require complete documentation" {
 osv_project=$(create_project osv)
 cat >"$osv_project/osv-scanner.toml" <<'EOF'
 [[IgnoredVulns]]
@@ -269,5 +285,4 @@ expect_success "$osv_project" 'documented OSV exception was rejected'
 sed -i.bak '/ignoreUntil/d' "$osv_project/osv-scanner.toml"
 rm "$osv_project/osv-scanner.toml.bak"
 expect_failure "$osv_project" 'OSV exception without an expiry was accepted'
-
-printf 'Dependency package-manager, cooldown, lockfile, and OSV exception policies passed.\n'
+}

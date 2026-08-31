@@ -1,9 +1,11 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env bats
 
-root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
-tmp=$(mktemp -d "${TMPDIR:-/tmp}/go-scaffold-tests.XXXXXX")
-trap 'rm -rf "$tmp"' EXIT HUP INT TERM
+load test_helper.bash
+
+setup() {
+bats_require_minimum_version 1.14.0
+root=$(repo_root)
+tmp="$BATS_TEST_TMPDIR"
 
 mock_bin=$tmp/mock-bin
 mkdir "$mock_bin"
@@ -30,7 +32,9 @@ while [ "$#" -gt 0 ]; do
 done
 EOF
 chmod +x "$mock_bin/npx"
+}
 
+@test "Go scaffold renders a valid project and selected skills" {
 project=$tmp/widget
 PATH="$mock_bin:$PATH" "$root/bin/init-go-project" --name Widget --module example.com/acme/widget --agent codex --agent claude-code "$project" >/dev/null
 for file in go.mod Makefile .golangci.yml AGENTS.md .githooks/pre-commit scripts/install-go-tools scripts/policy-check .github/workflows/ci.yml cmd/widget/main.go; do
@@ -45,14 +49,20 @@ grep -Fq 'gocyclo' "$project/.golangci.yml"
 )
 [ -f "$project/.agents/skills/golang-testing/SKILL.md" ]
 [ -f "$project/.claude/skills/golang-security/SKILL.md" ]
+}
+
+@test "Go scaffold accepts an otherwise-empty Git repository" {
 existing_project=$tmp/existing-widget
 mkdir "$existing_project"
 git -C "$existing_project" init >/dev/null
 PATH="$mock_bin:$PATH" "$root/bin/init-go-project" --module example.com/acme/existing-widget --agent codex "$existing_project" >/dev/null
 [ "$(git -C "$existing_project" symbolic-ref --short HEAD)" = main ]
 [ -f "$existing_project/.git/HEAD" ]
+}
+
+@test "Go scaffold rejects a missing module path" {
 if PATH="$mock_bin:$PATH" "$root/bin/init-go-project" --agent codex "$tmp/missing-module" >/dev/null 2>&1; then
   printf '%s\n' 'initializer accepted a missing module path' >&2
   exit 1
 fi
-printf '%s\n' 'Go scaffold initializer tests passed.'
+}

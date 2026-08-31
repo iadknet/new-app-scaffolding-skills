@@ -1,9 +1,11 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env bats
 
-root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
-tmp=$(mktemp -d "${TMPDIR:-/tmp}/agent-scaffold-distribution.XXXXXX")
-trap 'rm -rf "$tmp"' EXIT HUP INT TERM
+load test_helper.bash
+
+@test "distribution installation produces a usable project without bootstrap leakage" {
+bats_require_minimum_version 1.14.0
+root=$(repo_root)
+tmp="$BATS_TEST_TMPDIR"
 installed=$tmp/installed
 project=$tmp/project
 
@@ -44,4 +46,4 @@ done
   scripts/policy-check
 )
 
-printf 'Installed bootstrap and selected agent runtime skills passed.\n'
+}

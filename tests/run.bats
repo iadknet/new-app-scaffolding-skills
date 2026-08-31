@@ -1,9 +1,11 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env bats
 
-root=$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)
-tmp=$(mktemp -d "${TMPDIR:-/tmp}/agent-scaffold-tests.XXXXXX")
-trap 'rm -rf "$tmp"' EXIT HUP INT TERM
+load test_helper.bash
+
+setup() {
+bats_require_minimum_version 1.14.0
+root=$(repo_root)
+tmp="$BATS_TEST_TMPDIR"
 tests_run=0
 
 pass() {
@@ -61,7 +63,9 @@ chmod +x "$mock_bin/npx"
 init() {
   PATH="$mock_bin:$PATH" "$root/bin/init-agent-project" --agent codex --agent claude-code "$@"
 }
+}
 
+@test "initializer renders a project with selected runtime skills" {
 project="$tmp/project with spaces"
 init --name 'Example & Tools' "$project" >/dev/null
 for expected in AGENTS.md CHANGELOG.md CLAUDE.md Makefile README.md SECURITY.md .pre-commit-config.yaml \
@@ -82,7 +86,9 @@ for skill in prd-create prd-review prd-implement project-workflow; do
 done
 [ ! -e "$project/.agents/skills/agent-project-scaffold" ] || fail 'bootstrap skill leaked into generated project'
 pass 'initializes a rendered project with only selected runtime skills'
+}
 
+@test "initializer accepts empty and otherwise-empty Git targets" {
 empty="$tmp/empty"
 mkdir "$empty"
 PATH="$mock_bin:$PATH" "$root/skills/agent-project-scaffold/scripts/init-agent-project" --agent codex "$empty" >/dev/null
@@ -95,7 +101,9 @@ git -C "$empty_git" init >/dev/null 2>&1
 init "$empty_git" >/dev/null
 [ "$(git -C "$empty_git" symbolic-ref --short HEAD)" = main ] || fail 'empty Git branch was not normalized to main'
 pass 'accepts empty and otherwise-empty Git targets'
+}
 
+@test "initializer rejects unsafe targets and rolls back failed installation" {
 populated="$tmp/populated"
 mkdir "$populated"
 touch "$populated/.hidden"
@@ -107,5 +115,4 @@ failed="$tmp/failed-install"
 assert_fails env MOCK_NPX_FAIL=1 PATH="$mock_bin:$PATH" "$root/bin/init-agent-project" --agent codex "$failed"
 [ ! -e "$failed" ] || fail 'failed installer left a target directory'
 pass 'rejects unsafe targets and rolls back a failed install'
-
-printf '1..%s\n' "$tests_run"
+}

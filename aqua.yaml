@@ -9,6 +9,7 @@ registries:
   - type: standard
     ref: v4.518.0 # renovate: depName=aquaproj/aqua-registry
 packages:
+  - name: bats-core/bats-core@v1.14.0
   - name: rhysd/actionlint@v1.7.12
   - name: koalaman/shellcheck@v0.11.0
   - name: gitleaks/gitleaks@v8.30.1
