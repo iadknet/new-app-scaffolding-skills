@@ -2,7 +2,9 @@
 set -eu
 
 version=4.5.1
-target=.tools/bin/pre-commit
+script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+repository_root=$(CDPATH='' cd -- "$script_dir/.." && pwd)
+target=$repository_root/.tools/bin/pre-commit
 
 if [ -x "$target" ] && "$target" --version 2>/dev/null | grep -Fq "pre-commit $version"; then
   printf 'pre-commit %s is already installed.\n' "$version"
@@ -11,14 +13,31 @@ else
     printf 'install-pre-commit: uv is required; install it from https://docs.astral.sh/uv/\n' >&2
     exit 1
   }
-  tool_root=$(pwd)/.tools/uv-tools
-  bin_root=$(pwd)/.tools/bin
+  tool_root=$repository_root/.tools/uv-tools
+  bin_root=$repository_root/.tools/bin
   mkdir -p "$tool_root" "$bin_root"
   UV_TOOL_DIR=$tool_root UV_TOOL_BIN_DIR=$bin_root \
     uv tool install "pre-commit==$version" --python 3.12 --managed-python --no-progress
 fi
 
-if [ "$(git config --local --get core.hooksPath 2>/dev/null || :)" = .githooks ]; then
-  git config --local --unset-all core.hooksPath
-fi
-"$target" install --install-hooks
+hooks_path=$(git -C "$repository_root" config --local --get core.hooksPath 2>/dev/null || :)
+case $hooks_path in
+  '') ;;
+  .githooks) git -C "$repository_root" config --local --unset-all core.hooksPath ;;
+  *)
+    printf 'install-pre-commit: unsupported core.hooksPath: %s\n' "$hooks_path" >&2
+    exit 1
+    ;;
+esac
+
+hook_source=$script_dir/pre-commit-hook
+hook_target=$(git -C "$repository_root" rev-parse --git-path hooks/pre-commit)
+case $hook_target in
+  /*) ;;
+  *) hook_target=$repository_root/$hook_target ;;
+esac
+
+mkdir -p "$(dirname -- "$hook_target")"
+cp "$hook_source" "$hook_target"
+chmod +x "$hook_target"
+printf 'pre-commit installed at %s\n' "$hook_target"
