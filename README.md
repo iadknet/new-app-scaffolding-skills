@@ -1,189 +1,191 @@
-# Lean Agent Project Scaffolding
+# Secure Agentic Project Scaffolding
 
-This repository distributes new-project scaffolds and an additive container
-bootstrap skill. The foundational scaffold creates agent-portable workflow
-skills, PRD tooling, repository policy checks, pinned shell/workflow analysis,
-and secret scanning without selecting an application framework.
+[![Tests](https://github.com/iadknet/new_app_scaffolding_skills/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/iadknet/new_app_scaffolding_skills/actions/workflows/test.yml?query=branch%3Amain)
+[![License: MIT](https://img.shields.io/github/license/iadknet/new_app_scaffolding_skills)](LICENSE)
 
-## Repository boundary
+This project provides reusable agent skills and scripts for initializing new
+coding projects with a secure, repeatable baseline. It is for developers
+starting agentic coding projects who want essential tooling, workflow guidance,
+and guardrails in place before application code begins to accumulate.
 
-This repository is the scaffold distributor, not an initialized application
-project:
+I created it to give new agentic coding projects a secure baseline of tools and
+guardrails from the start, with particular attention to software supply-chain
+protections, dependency integrity, vulnerability detection, secret scanning,
+hardened GitHub Actions, and clear agent-facing development workflows.
 
-- `skills/agent-project-scaffold/` is the portable bootstrap skill. Its bundled
-  script creates a new project from `assets/template/` and installs its private
-  `assets/project-skills/` bundle into the selected agents' native project paths.
-- `bin/init-agent-project` is a wrapper around that same bundled initializer.
-- `tests/` validates both the initializer and the generated output with Bats-core.
-- The root `Makefile` develops and tests the distributor. The `Makefile` under
-  the skill's bundled template becomes the generated project's command interface.
+The scaffolding workflows are intentionally designed for new repositories, not
+for retrofitting existing projects. Their templates, policies, and skills can
+still serve as a reference when guiding an agent through an ad-hoc retrofit, but
+that path is not automated or guaranteed. `docker-bootstrap` is the deliberate
+exception: it adds container tooling to an existing application.
 
-Only `assets/template/` is copied into a generated project. A parent scaffold's
-runtime skills remain private to that parent until its initializer installs them
-through `skills`; neither the bootstrap skill nor sibling scaffold bundles are
-copied into the generated project.
+## What this project provides
 
-Future stack-specific scaffolds are sibling bootstrap skills. Each owns its
-template and runtime-skill bundle, so installing or invoking one cannot install
-another scaffold's skills.
+- A framework-neutral foundation for a new agentic coding project.
+- An architecture-neutral Go module foundation with Go-specific tooling and
+  guardrails.
+- Portable project skills for planning, reviewing, and implementing work from
+  repository-validated PRDs.
+- Pinned development and security tooling with local and CI checks.
+- An additive workflow for containerizing an existing application with Minimus,
+  Docker Compose, and Trivy.
 
-`skills/go-project-scaffold/` is the first stack-specific sibling. It creates a
-single-module Go foundation with no assumed application architecture, tight
-static feedback, native Git hooks, dependency vulnerability scanning, a
-non-blocking mutation-testing pilot, and GitHub Actions CI.
+## Choose a workflow
 
-`skills/docker-bootstrap/` instead operates on existing applications. It
-coordinates a separately installed Minimus Dockerfile workflow with canonical
-Compose configuration, conservative build-context exclusions, and a pinned
-containerized Trivy gate.
-
-## Security defaults
-
-The generated project starts with security controls that do not depend on an
-application stack. Stack- and release-specific controls remain explicit follow-up
-work rather than being implied by the foundation.
-
-| Area | Practice implemented by the template | Enforcement |
+| Skill | Target | Use it when |
 | --- | --- | --- |
-| Tool acquisition | Node, uv, and security and quality tools are version-pinned in Aqua, exposed through project-local proxy links, and verified against committed SHA-256 checksums on first use. | `make setup`, `aqua.yaml`, and `aqua-checksums.json` |
-| Dependency integrity | Node and Python dependency roots require a committed lockfile, an exact supported package-manager version, and consistent workspace ownership. | `scripts/dependency-policy-check` through `make check` |
-| Dependency freshness | New npm, pnpm, Yarn, and uv resolutions must observe a seven-day package-age gate, paired with a seven-day Dependabot cooldown. | Native package-manager configuration checks and `.github/dependabot.yml` validation |
-| Vulnerability management | Supported lockfiles are scanned for known vulnerabilities. Exceptions must name one vulnerability and include a reason and expiration; broad package overrides are rejected. | OSV-Scanner through `make dependency-audit` and `make check` |
-| Secret protection | Staged changes are scanned before commit and the complete Git history is scanned in CI. Scan output is redacted. | Gitleaks through pre-commit, `make precommit`, and `make audit` |
-| Agent-skill safety | Project skills receive deterministic behavioral, trigger, and overlap analysis. HIGH and CRITICAL findings block the check; LLM analysis is not part of the blocking path. | Cisco AI Skill Scanner through pre-commit, `make check`, and a dedicated CI job |
-| GitHub Actions hardening | Workflows must declare read-only `contents` permission, may not override it at job level, and must pin actions to full commit SHAs. Checkout credentials are not persisted. | `scripts/policy-check`; offline zizmor analysis runs in CI |
-| Local/CI parity | The same project policy, PRD, quality, skill, dependency, and secret checks are available locally and in CI. | The stable `make` interface and the standard pre-commit framework |
-| Deferred release controls | SBOMs, provenance attestations, CodeQL, dependency review, Scorecard, and repository rulesets are intentionally deferred until the stack, visibility, artifact, and GitHub plan are known. | Documented in the generated `SECURITY.md` and selected-stack PRD |
+| `agent-project-scaffold` | New, empty repository | You want a framework-neutral project foundation with security controls, repository policy, and agent workflow skills. |
+| `go-project-scaffold` | New, empty repository | You want an architecture-neutral Go module with Go-specific skills, quality gates, hooks, vulnerability scanning, and CI, without generated application source or an assumed package layout. |
+| `docker-bootstrap` | Existing application | You want to add or harden a production-parity Dockerfile, canonical `compose.yaml`, build-context exclusions, and a Trivy gate. |
 
-### Included security and quality tooling
+The two project scaffolds do not merge into non-empty repositories. They also do
+not install one another: each owns its template and runtime-skill bundle.
 
-| Tool | Pinned version | Role in a generated project |
-| --- | --- | --- |
-| Node.js | 22.20.0 | Provides the generated project's pinned Node, npm, and npx commands |
-| Gitleaks | 8.30.1 | Scans staged changes and Git history for secrets |
-| OSV-Scanner | 2.4.0 | Scans supported dependency lockfiles for known vulnerabilities |
-| Cisco AI Skill Scanner | 2.0.13 | Scans installed project skills and blocks HIGH or CRITICAL findings |
-| ShellCheck | 0.11.0 | Statically analyzes the template's POSIX shell scripts |
-| actionlint | 1.7.12 | Validates GitHub Actions workflows and invokes the pinned ShellCheck binary for embedded shell |
-| pre-commit | 4.5.1 | Runs project validation and skill scanning from the standard Git hook framework |
-| zizmor | 1.29.0 | Performs offline GitHub Actions security analysis in CI |
-| uv | 0.12.3 | Installs pinned Python-based tools with a seven-day release-age constraint |
+## Quick start
 
-The generated [security policy](skills/agent-project-scaffold/assets/template/SECURITY.md)
-contains the complete dependency acquisition, registry, exception, and private
-vulnerability-reporting guidance.
+Until the first release is published, clone this repository and install the
+skill you want from the local checkout. The scaffold initializers require a
+POSIX shell, Git, Node.js 22.20+, and network access for the pinned Agent Skills
+installer.
 
-## Skills
+```sh
+git clone https://github.com/iadknet/new_app_scaffolding_skills.git
+cd new_app_scaffolding_skills
 
-The new-project bootstrap installs five private runtime skills only for the
-agents selected during initialization. The additive Docker skill acts directly
-on an existing application instead.
+npx skills@1.5.23 add . --skill agent-project-scaffold --global
+# Or:
+npx skills@1.5.23 add . --skill go-project-scaffold --global
+```
 
-| Skill | Scope | Use it for |
-| --- | --- | --- |
-| `agent-project-scaffold` | User/global bootstrap skill | Create a new, empty agent-ready project and install the selected agents' runtime skills. It does not retrofit existing repositories. |
-| `go-project-scaffold` | User/global bootstrap skill | Create a new, architecture-neutral Go module with Go-specific skills, quality gates, hooks, and CI. It requires a Go module path. |
-| `docker-bootstrap` | User/global additive skill | Dockerize or harden an existing application with a Minimus application image, canonical `compose.yaml`, `.dockerignore`, and Trivy security gate. It requires the separately installed `minimus-dockerfile` skill. |
-| `project-workflow` | Generated project | Inspect current PRD state and route work to creation, readiness review, implementation, final review, or archival. |
-| `prd-create` | Generated project | Research, create, or materially revise a master PRD and dependency-ordered stage PRDs without implementing product code. |
-| `prd-review` | Generated project | Review a PRD for implementation readiness or review completed code, reporting P1/P2/P3 findings and enforcing revision gates. |
-| `prd-implement` | Generated project | Implement an approved PRD in stage order, maintain truthful status and verification evidence, synchronize documentation, and prepare it for final review. |
-| `public-repo-readiness` | Generated project | Prepare public-facing documentation, badges, licensing, and applicable community files without changing product or repository-admin configuration. |
+Then ask your agent to use the installed skill. Name the target directory and
+the agents that should receive the generated project's private skills. The Go
+scaffold also requires a module path.
 
-## PRD workflow
+For example:
 
-Generated projects treat PRDs as executable, repository-validated workflow
-state. The initializer seeds a `project-foundation` PRD so stack selection begins
-with goals, constraints, research, and observable decisions instead of framework
-assumptions.
+```text
+Use agent-project-scaffold to create "Example Project" at ../example-project
+for Codex and Claude Code.
+```
 
-1. **Create:** invoke `prd-create`, which uses `scripts/prd-new` to create one
-   master PRD and one or more dependency-ordered stage PRDs under
-   `docs/prds/active/<slug>/`.
-2. **Review for readiness:** invoke `prd-review`. P1 and P2 findings require
-   revision; a clean review sets the PRD and its stages to `Ready` and its inline
-   `Review Status` to `APPROVED`. Automated readiness review is capped at three
-   attempts before human intervention is required.
-3. **Implement:** invoke `prd-implement` only for an approved `Ready` or
-   `In Progress` PRD. Complete stages in order, record verification evidence,
-   and keep affected durable documentation synchronized.
-4. **Review the implementation:** invoke `prd-review` for the final-code gate.
-   P1 and P2 findings block completion; the review reruns the checks declared by
-   affected stages and does not alter the readiness review count.
-5. **Validate and archive:** run `make check`, then
-   `scripts/prd-archive <slug>`. Archival succeeds only for a complete, valid PRD
-   set and rolls back the move if post-archive validation fails.
+```text
+Use go-project-scaffold to create an architecture-neutral Go module foundation
+at ../example-go with module path example.com/acme/example-go for Codex.
+```
 
-`scripts/prd-check` enforces required sections, status and checkbox consistency,
-dependency order, documentation synchronization gates, the three-review cap,
-generated indexes, and a 750-line limit per PRD. Use
-`project-workflow` when the appropriate phase is not already clear from the
-current state.
+After initialization:
 
-## Create a project
+```sh
+cd ../example-project
+brew install aqua # macOS with Homebrew; see Aqua docs for other platforms
+make setup
+make check
+```
+
+Generated projects require [Aqua](https://aquaproj.github.io/docs/install/)
+v2.60.1 or newer. `make setup` creates project-local proxy links, downloads the
+pinned tools after checksum verification, and configures pre-commit hooks. The
+initializer creates a local `main` branch but never creates a commit or remote.
+
+To run the initializers directly from a checkout instead of installing the
+skills:
 
 ```sh
 bin/init-agent-project --name "Example Project" \
   --agent codex --agent claude-code \
   ../example-project
-cd ../example-project
-# One-time bootstrap: https://aquaproj.github.io/docs/install/
-brew install aqua # macOS with Homebrew
-make setup
+
+bin/init-go-project --module example.com/acme/example-go \
+  --agent codex \
+  ../example-go
 ```
 
-The target must not exist, be empty, or be an otherwise-empty Git repository.
-Provide one or more `--agent` values supported by the pinned `skills` CLI. The
-initializer requires POSIX shell tools, Git, Node.js 22.20+, and network access
-for the pinned installer. It builds and validates a staging project before it
-replaces the target, creates a local `main` branch, and never creates a commit
-or remote. `make setup` additionally requires [Aqua](https://aquaproj.github.io/docs/install/)
-v2.60.1+. Install Aqua once using its platform-specific instructions (for
-example, `brew install aqua` on macOS with Homebrew); setup creates project-local
-proxy links for Node/npm, uv, and the security and quality tools declared in
-`aqua.yaml`. Aqua downloads each pinned tool on first use after verifying its
-committed checksum, and setup configures the standard pre-commit framework.
+Targets must not exist, be empty, or be otherwise-empty Git repositories.
 
-This initializer supports new projects only. It does not install the scaffold or
-its skills into an existing, non-empty repository.
+### Dockerizing an existing application
 
-## Install as an agent skill
-
-Until the first release is published, install a local checkout with the
-multi-agent Agent Skills installer:
-
-```sh
-npx skills@1.5.23 add . --skill agent-project-scaffold --global
-```
-
-Then ask the agent to use `agent-project-scaffold` to create a named project at
-an explicit target directory and name the target agents. The installed skill
-runs the same bundled initializer as `bin/init-agent-project`.
-
-Install the additive Docker workflow independently for existing applications:
+Install `docker-bootstrap` independently:
 
 ```sh
 npx skills@1.5.23 add . --skill docker-bootstrap --global
 ```
 
-Also install the Minimus plugin that provides `minimus-dockerfile`; the Docker
-skill stops before editing when that required workflow is unavailable.
+This workflow also requires Docker with Compose v2 and the Minimus plugin that
+provides `minimus-dockerfile`. It stops before editing if those prerequisites
+are unavailable.
 
-After `v0.1.0` is published, install its immutable source revision with:
+## Security baseline
 
-```sh
-npx skills@1.5.23 add iadknet/new_app_scaffolding_skills#v0.1.0 \
-  --skill agent-project-scaffold \
-  --global
-```
+The framework-neutral scaffold establishes controls that do not depend on an
+application stack. Stack- and release-specific controls remain explicit
+follow-up work rather than being implied by the foundation.
 
-## Releases
+| Area | Baseline | Enforcement |
+| --- | --- | --- |
+| Tool acquisition | Node, uv, and security and quality tools are pinned in Aqua and verified against committed SHA-256 checksums on first use. | `make setup`, `aqua.yaml`, and `aqua-checksums.json` |
+| Dependency integrity | Node and Python dependency roots require a committed lockfile, an exact supported package-manager version, and consistent workspace ownership. | `scripts/dependency-policy-check` through `make check` |
+| Dependency freshness | New npm, pnpm, Yarn, and uv resolutions observe a seven-day package-age gate paired with a Dependabot cooldown. | Package-manager configuration and `.github/dependabot.yml` validation |
+| Vulnerability management | Supported lockfiles are scanned for known vulnerabilities; exceptions must identify one vulnerability and include a reason and expiration. | OSV-Scanner through `make dependency-audit` and `make check` |
+| Secret protection | Staged changes are scanned before commit and Git history is scanned in CI with redacted output. | Gitleaks through pre-commit, `make precommit`, and `make audit` |
+| Agent-skill safety | Project skills receive deterministic behavioral, trigger, and overlap analysis; HIGH and CRITICAL findings block checks. | Cisco AI Skill Scanner through pre-commit, `make check`, and CI |
+| GitHub Actions hardening | Workflows use read-only contents permissions, disallow job-level permission overrides, pin actions to full commit SHAs, and do not persist checkout credentials. | `scripts/policy-check`, actionlint, and offline zizmor analysis |
+| Local/CI parity | Project policy, PRD, quality, skill, dependency, and secret checks are available locally and in CI. | Stable `make` targets and pre-commit hooks |
 
-Releases are repository-wide stable SemVer tags, beginning with `v0.1.0`. A tag
-pins every parent scaffold and its private runtime-skill bundle to one immutable
-source revision. Generate and review the corresponding [CHANGELOG.md](CHANGELOG.md)
-section before running the checks and publishing a GitHub Release after tag CI
-passes; the exact procedure is in [RELEASING.md](RELEASING.md).
+The generated [security policy](skills/agent-project-scaffold/assets/template/SECURITY.md)
+documents dependency acquisition, registries, vulnerability exceptions, and
+private reporting. Controls that depend on the chosen stack or release model—
+including SBOMs, provenance, CodeQL, dependency review, Scorecard, and repository
+rulesets—are intentionally deferred until the necessary context exists.
+
+## Generated-project workflow
+
+The framework-neutral scaffold installs five private runtime skills into the
+agent locations selected during initialization:
+
+| Skill | Role |
+| --- | --- |
+| `project-workflow` | Inspect PRD state and route work to the correct phase. |
+| `prd-create` | Research and create a master PRD with dependency-ordered stage PRDs. |
+| `prd-review` | Review PRD readiness or completed implementation with P1/P2/P3 findings. |
+| `prd-implement` | Implement an approved PRD in stage order and record verification evidence. |
+| `public-repo-readiness` | Prepare documentation, badges, licensing, and applicable community files for public GitHub use. |
+
+Generated projects treat PRDs as executable, repository-validated workflow
+state. The initializer seeds a `project-foundation` PRD so stack selection begins
+with goals, constraints, research, and observable decisions.
+
+1. Use `prd-create` to create the master and stage PRDs.
+2. Use `prd-review` to establish implementation readiness. P1 and P2 findings
+   require revision; a clean review marks the PRD `Ready` and `APPROVED`.
+3. Use `prd-implement` to complete approved stages in dependency order while
+   keeping verification evidence and durable documentation current.
+4. Use `prd-review` for the final-code gate.
+5. Run `make check`, then archive the completed PRD with
+   `scripts/prd-archive <slug>`.
+
+`scripts/prd-check` enforces required sections, status consistency, dependency
+order, documentation synchronization, readiness-review limits, generated
+indexes, and a 750-line limit per PRD.
+
+## Repository architecture
+
+This repository distributes scaffolds; it is not itself an initialized
+application project.
+
+- `skills/agent-project-scaffold/` contains the framework-neutral bootstrap,
+  its generated-project template, and its private runtime-skill bundle.
+- `skills/go-project-scaffold/` contains the Go bootstrap, template, and
+  Go-specific runtime skills.
+- `skills/docker-bootstrap/` contains the additive container workflow for
+  existing applications.
+- `bin/` provides direct wrappers around the project initializers.
+- `tests/` validates initializer behavior, generated output, policies, and skill
+  contracts with Bats-core.
+
+Only a scaffold's `assets/template/` content is copied into a generated project.
+Its runtime skills are installed separately into the selected agents' native
+project paths. Parent bootstrap skills and sibling scaffold bundles are not
+copied into the generated project.
 
 ## Development
 
@@ -193,32 +195,46 @@ make check
 make test
 ```
 
-`make setup` is the one-time development bootstrap. It creates project-local
-Aqua proxy links; test and quality targets download and run the pinned Node, uv,
-Bats-core, and analysis tools through those links with checksum verification.
+`make setup` installs the pinned development, pre-commit, and security tools.
+`make check` runs the offline distribution checks, test suite, and deterministic
+skill scan.
 
-Real external-tool integration is separate from the offline default test suite:
+External-tool and distribution integration tests are separate:
 
 ```sh
 make test-integration
 make test-distribution
 ```
 
-The Docker/Trivy fixture is additionally opt-in because it pulls and builds
+The Docker/Trivy integration fixture is opt-in because it pulls and builds
 container images:
 
 ```sh
 RUN_DOCKER_BOOTSTRAP_INTEGRATION=1 make test-docker-integration
 ```
 
-The integration target exercises the pinned Aqua tools and Python tools, then
-verifies their proxy layouts, hook installation, and end-to-end detection
-behavior.
-Cisco AI Skill Scanner runs with deterministic analyzers in `make check`,
-pre-commit, and a dedicated GitHub Actions job; LLM analysis is not enabled by
-default.
-`test-distribution` installs a local bootstrap copy through `npx skills` and
-verifies the installed initializer's generated project.
+## Releases
+
+Releases are repository-wide stable Semantic Versioning tags, beginning with
+`v0.1.0`. A tag pins every scaffold and its private runtime-skill bundle to one
+source revision. See [RELEASING.md](RELEASING.md) for the changelog, validation,
+tagging, and GitHub Release procedure.
+
+After `v0.1.0` is published, install its immutable source revision with:
+
+```sh
+npx skills@1.5.23 add iadknet/new_app_scaffolding_skills#v0.1.0 \
+  --skill agent-project-scaffold \
+  --global
+```
+
+## Contributing and support
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development and pull-request
+expectations, [SUPPORT.md](SUPPORT.md) for help routes, and the
+[Code of Conduct](CODE_OF_CONDUCT.md) for community expectations. Report
+security vulnerabilities through the private process in
+[SECURITY.md](SECURITY.md), not in a public issue.
 
 ## License
 
