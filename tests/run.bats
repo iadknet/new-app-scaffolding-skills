@@ -70,10 +70,13 @@ project="$tmp/project with spaces"
 init --name 'Example & Tools' "$project" >/dev/null
 for expected in AGENTS.md CHANGELOG.md CLAUDE.md Makefile README.md SECURITY.md .pre-commit-config.yaml \
   scripts/changelog scripts/prd-check scripts/skill-check scripts/install-pre-commit \
-  aqua.yaml aqua-checksums.json scripts/aqua scripts/dependency-audit scripts/dependency-policy-check \
+  aqua.yaml aqua-checksums.json scripts/dependency-audit scripts/dependency-policy-check \
   docs/prds/active/project-foundation/master-prd.md .github/workflows/ci.yml; do
   assert_file "$project/$expected"
 done
+[ ! -e "$project/scripts"/aqua ] || fail 'generated project contains the obsolete Aqua adapter'
+[ ! -e "$project/.tools" ] || fail 'generated project contains local tool state'
+grep -Fq 'entry: make project-precommit' "$project/.pre-commit-config.yaml" || fail 'generated project hook bypasses Make'
 grep -Fq '# Example & Tools' "$project/README.md" || fail 'project name was not rendered'
 if grep -RE '__[A-Z_]+__' "$project" --exclude-dir=.git >/dev/null 2>&1; then
   fail 'unrendered project token'

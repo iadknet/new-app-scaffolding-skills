@@ -16,17 +16,18 @@ make check
 Then read [the project foundation PRD](docs/prds/active/project-foundation/master-prd.md)
 and [the contributor guide](CONTRIBUTING.md).
 
-`make setup` requires Aqua v2.60.1+, `uv`, and network access. Install Aqua
-once using its [platform-specific instructions](https://aquaproj.github.io/docs/install/)
-(for example, `brew install aqua` on macOS with Homebrew). Aqua installs the
-pinned release-binary tools from `aqua.yaml` and `aqua-checksums.json`; the
-Python tool resolution uses a seven-day release-age window.
+`make setup` requires Aqua v2.60.1+ and network access. Install Aqua once using
+its [platform-specific instructions](https://aquaproj.github.io/docs/install/)
+(for example, `brew install aqua` on macOS with Homebrew). Setup creates
+project-local proxy links for the pinned Node/npm, uv, and release-binary tools
+in `aqua.yaml`; Aqua downloads each tool on first use after verifying its
+committed checksum. Python tool resolution uses a seven-day release-age window.
 
 ## Workflow skills
 
 The initializer has installed five project-scoped workflow skills for the
-agent(s) selected during project creation. `make setup` installs quality and
-security tools through Aqua, not skills.
+agent(s) selected during project creation. `make setup` exposes quality and
+security tools through Aqua's project-local proxies, not skills.
 
 Use your agent's skill interface to inspect and invoke `project-workflow`,
 `prd-create`, `prd-review`, `prd-implement`, and `public-repo-readiness`.

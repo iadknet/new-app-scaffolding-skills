@@ -1,14 +1,20 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help setup require-bats precommit quality skill-check check test test-integration test-distribution changelog release-check test-network
+AQUA_ROOT_DIR ?= $(CURDIR)/.tools/aqua
+export AQUA_ROOT_DIR
+export AQUA_ENFORCE_CHECKSUM := true
+export AQUA_ENFORCE_REQUIRE_CHECKSUM := true
+export PATH := $(AQUA_ROOT_DIR)/bin:$(PATH)
 
-BATS := .tools/aqua/bin/bats
+.PHONY: help setup require-bats precommit project-precommit quality skill-check check test test-integration test-distribution changelog release-check test-network
+
+BATS := $(AQUA_ROOT_DIR)/bin/bats
 
 help: ## Show development targets.
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  %-16s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 setup: ## Install pinned development, pre-commit, and security tools.
-	@scripts/aqua install
+	@aqua install -l
 	@scripts/install-skill-scanner
 	@scripts/install-pre-commit
 
@@ -17,6 +23,9 @@ require-bats:
 
 precommit: ## Run the configured pre-commit hooks against staged changes.
 	@.tools/bin/pre-commit run
+
+project-precommit: ## Run the project-validation pre-commit entry point.
+	@scripts/project-precommit
 
 quality: require-bats ## Run distribution ShellCheck and GitHub Actions validation.
 	@$(BATS) tests/distribution-quality.bats

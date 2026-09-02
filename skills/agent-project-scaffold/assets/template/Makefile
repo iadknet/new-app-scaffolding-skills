@@ -1,18 +1,27 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help setup precommit prd-check skill-check dependency-audit check audit changelog run build test lint format clean
+AQUA_ROOT_DIR ?= $(CURDIR)/.tools/aqua
+export AQUA_ROOT_DIR
+export AQUA_ENFORCE_CHECKSUM := true
+export AQUA_ENFORCE_REQUIRE_CHECKSUM := true
+export PATH := $(AQUA_ROOT_DIR)/bin:$(PATH)
+
+.PHONY: help setup precommit project-precommit prd-check skill-check dependency-audit check audit changelog run build test lint format clean
 
 help: ## Show the stable project command interface.
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z0-9_-]+:.*## / {printf "  %-12s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 setup: ## Install pinned local tools and configure pre-commit hooks.
-	@scripts/aqua install
+	@aqua install -l
 	@scripts/install-skill-scanner
 	@scripts/install-pre-commit
 	@printf 'Setup complete. Git hooks use the pre-commit framework.\n'
 
 precommit: ## Validate staged PRDs, repository quality, and secrets.
 	@.tools/bin/pre-commit run
+
+project-precommit: ## Run the project-validation pre-commit entry point.
+	@scripts/project-precommit
 
 prd-check: ## Validate all active and archived PRD sets.
 	@scripts/prd-check

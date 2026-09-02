@@ -40,7 +40,7 @@ work rather than being implied by the foundation.
 
 | Area | Practice implemented by the template | Enforcement |
 | --- | --- | --- |
-| Tool acquisition | Security and quality tools are version-pinned in Aqua and verified against committed SHA-256 checksums. | `make setup`, `aqua.yaml`, and `aqua-checksums.json` |
+| Tool acquisition | Node, uv, and security and quality tools are version-pinned in Aqua, exposed through project-local proxy links, and verified against committed SHA-256 checksums on first use. | `make setup`, `aqua.yaml`, and `aqua-checksums.json` |
 | Dependency integrity | Node and Python dependency roots require a committed lockfile, an exact supported package-manager version, and consistent workspace ownership. | `scripts/dependency-policy-check` through `make check` |
 | Dependency freshness | New npm, pnpm, Yarn, and uv resolutions must observe a seven-day package-age gate, paired with a seven-day Dependabot cooldown. | Native package-manager configuration checks and `.github/dependabot.yml` validation |
 | Vulnerability management | Supported lockfiles are scanned for known vulnerabilities. Exceptions must name one vulnerability and include a reason and expiration; broad package overrides are rejected. | OSV-Scanner through `make dependency-audit` and `make check` |
@@ -54,6 +54,7 @@ work rather than being implied by the foundation.
 
 | Tool | Pinned version | Role in a generated project |
 | --- | --- | --- |
+| Node.js | 22.20.0 | Provides the generated project's pinned Node, npm, and npx commands |
 | Gitleaks | 8.30.1 | Scans staged changes and Git history for secrets |
 | OSV-Scanner | 2.4.0 | Scans supported dependency lockfiles for known vulnerabilities |
 | Cisco AI Skill Scanner | 2.0.13 | Scans installed project skills and blocks HIGH or CRITICAL findings |
@@ -61,7 +62,7 @@ work rather than being implied by the foundation.
 | actionlint | 1.7.12 | Validates GitHub Actions workflows and invokes the pinned ShellCheck binary for embedded shell |
 | pre-commit | 4.5.1 | Runs project validation and skill scanning from the standard Git hook framework |
 | zizmor | 1.29.0 | Performs offline GitHub Actions security analysis in CI |
-| uv | 0.12.3 in CI | Installs pinned Python-based tools with a seven-day release-age constraint |
+| uv | 0.12.3 | Installs pinned Python-based tools with a seven-day release-age constraint |
 
 The generated [security policy](skills/agent-project-scaffold/assets/template/SECURITY.md)
 contains the complete dependency acquisition, registry, exception, and private
@@ -130,10 +131,11 @@ initializer requires POSIX shell tools, Git, Node.js 22.20+, and network access
 for the pinned installer. It builds and validates a staging project before it
 replaces the target, creates a local `main` branch, and never creates a commit
 or remote. `make setup` additionally requires [Aqua](https://aquaproj.github.io/docs/install/)
-v2.60.1+ and `uv`. Install Aqua once using its platform-specific instructions
-(for example, `brew install aqua` on macOS with Homebrew); Aqua then installs
-the project tools from the committed `aqua.yaml` and `aqua-checksums.json`, and
-setup configures the standard pre-commit framework.
+v2.60.1+. Install Aqua once using its platform-specific instructions (for
+example, `brew install aqua` on macOS with Homebrew); setup creates project-local
+proxy links for Node/npm, uv, and the security and quality tools declared in
+`aqua.yaml`. Aqua downloads each pinned tool on first use after verifying its
+committed checksum, and setup configures the standard pre-commit framework.
 
 This initializer supports new projects only. It does not install the scaffold or
 its skills into an existing, non-empty repository.
@@ -175,9 +177,9 @@ make check
 make test
 ```
 
-`make setup` is the one-time development bootstrap. Test and quality targets use
-the pinned local Bats-core and analysis tools and fail with an actionable error
-until setup has installed them.
+`make setup` is the one-time development bootstrap. It creates project-local
+Aqua proxy links; test and quality targets download and run the pinned Node, uv,
+Bats-core, and analysis tools through those links with checksum verification.
 
 Real external-tool integration is separate from the offline default test suite:
 
@@ -186,9 +188,9 @@ make test-integration
 make test-distribution
 ```
 
-The integration target installs the pinned Aqua release-binary tools and Python
-tools, then verifies their executable layouts, hook installation, and end-to-end
-detection behavior.
+The integration target exercises the pinned Aqua tools and Python tools, then
+verifies their proxy layouts, hook installation, and end-to-end detection
+behavior.
 Cisco AI Skill Scanner runs with deterministic analyzers in `make check`,
 pre-commit, and a dedicated GitHub Actions job; LLM analysis is not enabled by
 default.
