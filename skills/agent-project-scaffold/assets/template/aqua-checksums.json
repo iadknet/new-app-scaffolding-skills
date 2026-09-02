@@ -1,6 +1,26 @@
 {
   "checksums": [
     {
+      "id": "github_release/github.com/astral-sh/uv/0.12.3/uv-aarch64-apple-darwin.tar.gz",
+      "checksum": "546F7F8A6C70FF13A3A9D2BC958DB3427298CEBF3E0CB756F9177133B7068843",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/astral-sh/uv/0.12.3/uv-aarch64-unknown-linux-musl.tar.gz",
+      "checksum": "FA513FCA1EB2913334C944FE9ADBDD410274A1CBE8DD05D03699A9EB85311D4E",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/astral-sh/uv/0.12.3/uv-x86_64-apple-darwin.tar.gz",
+      "checksum": "4C9F52262A14DA336E4A42ED24992D12D0C956ACDE87619E4611D321DFFA602B",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "github_release/github.com/astral-sh/uv/0.12.3/uv-x86_64-unknown-linux-musl.tar.gz",
+      "checksum": "0643B9FB8C9FB27458E709CE6FF939695013C41975FF7B02D3F3B138D8D4BDB3",
+      "algorithm": "sha256"
+    },
+    {
       "id": "github_release/github.com/gitleaks/gitleaks/v8.30.1/gitleaks_8.30.1_darwin_arm64.tar.gz",
       "checksum": "B40AB0AE55C505963E365F271A8D3846EFBC170AA17F2607F13DF610A9AEB6A5",
       "algorithm": "sha256"
@@ -78,6 +98,26 @@
     {
       "id": "github_release/github.com/rhysd/actionlint/v1.7.12/actionlint_1.7.12_linux_arm64.tar.gz",
       "checksum": "325E971B6BA9BFA504672E29BE93C24981EEB1C07576D730E9F7C8805AFFF0C6",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/nodejs.org/dist/v22.20.0/node-v22.20.0-darwin-arm64.tar.gz",
+      "checksum": "CC04A76A09F79290194C0646F48FEC40354D88969BEC467789A5D55DD097F949",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/nodejs.org/dist/v22.20.0/node-v22.20.0-darwin-x64.tar.gz",
+      "checksum": "00DF9C5DF3E4EC6848C26B70FB47BF96492F342F4BED6B17F12D99B3A45EEECC",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/nodejs.org/dist/v22.20.0/node-v22.20.0-linux-arm64.tar.gz",
+      "checksum": "4181609E03DCB9880E7E5BF956061ECC0503C77A480C6631D868CB1F65A2C7DD",
+      "algorithm": "sha256"
+    },
+    {
+      "id": "http/nodejs.org/dist/v22.20.0/node-v22.20.0-linux-x64.tar.gz",
+      "checksum": "EEACCB0378B79406F2208E8B37A62479C70595E20BE6B659125EB77DD1AB2A29",
       "algorithm": "sha256"
     },
     {

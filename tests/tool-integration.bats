@@ -7,7 +7,7 @@ setup_file() {
   export BASE_PROJECT="$BATS_FILE_TMPDIR/base-project"
   ROOT=$(cd -- "$BATS_TEST_DIRNAME/.." && pwd)
   "$ROOT/bin/init-agent-project" --agent codex --agent claude-code "$BASE_PROJECT" >/dev/null
-  bash -c 'exec 3>&- 4>&- 5>&- 6>&- 7>&-; make -C "$1" setup' _ "$BASE_PROJECT" >/dev/null
+  bash -c 'exec 3>&- 4>&- 5>&- 6>&- 7>&-; make -C "$1" AQUA_ROOT_DIR="$1/.tools/aqua" setup' _ "$BASE_PROJECT" >/dev/null
 }
 
 setup() {
@@ -21,15 +21,15 @@ setup() {
   [ -f "$PROJECT/aqua.yaml" ]
 }
 
-@test "generated project installs pinned tools" {
-  for tool in gitleaks actionlint shellcheck osv-scanner; do
+@test "generated project creates proxies for pinned tools" {
+  for tool in node npm npx uv gitleaks actionlint shellcheck osv-scanner; do
     [ -x "$PROJECT/.tools/aqua/bin/$tool" ]
   done
 }
 
 @test "checksum enforcement rejects an incomplete lock and recovers" {
   command -v aqua >/dev/null
-  for tool in gitleaks actionlint shellcheck osv-scanner; do
+  for tool in node npm npx uv gitleaks actionlint shellcheck osv-scanner; do
     [ -x "$PROJECT/.tools/aqua/bin/$tool" ]
   done
   [ -x "$PROJECT/.git/hooks/pre-commit" ]
@@ -37,14 +37,27 @@ setup() {
 
   mv "$PROJECT/aqua-checksums.json" "$PROJECT/aqua-checksums.json.valid"
   printf '{\n  "checksums": []\n}\n' >"$PROJECT/aqua-checksums.json"
-  rm -rf "$PROJECT/.tools/aqua"
-  run bash -c 'cd "$1" && scripts/aqua install' _ "$PROJECT"
+  rm -rf "$PROJECT/.tools"
+  run make -C "$PROJECT" AQUA_ROOT_DIR="$PROJECT/.tools/aqua" setup
   assert_failure
   mv "$PROJECT/aqua-checksums.json.valid" "$PROJECT/aqua-checksums.json"
-  run bash -c 'cd "$1" && scripts/aqua install' _ "$PROJECT"
+  run make -C "$PROJECT" AQUA_ROOT_DIR="$PROJECT/.tools/aqua" setup
   assert_success
-  run make -C "$PROJECT" check
+  run make -C "$PROJECT" AQUA_ROOT_DIR="$PROJECT/.tools/aqua" check
   assert_success
+}
+
+@test "generated npm and subprocesses use Aqua-managed Node" {
+  run env AQUA_ROOT_DIR="$PROJECT/.tools/aqua" PATH="$PROJECT/.tools/aqua/bin:$PATH" \
+    bash -c 'cd "$1" && command -v node && command -v npm' _ "$PROJECT"
+  assert_success
+  [[ "${lines[0]}" = "$PROJECT/.tools/aqua/bin/node" ]]
+  [[ "${lines[1]}" = "$PROJECT/.tools/aqua/bin/npm" ]]
+
+  run env AQUA_ROOT_DIR="$PROJECT/.tools/aqua" PATH="$PROJECT/.tools/aqua/bin:$PATH" \
+    bash -c 'cd "$1" && printf "%s\n" "$(node --version)" "$(npm exec -- node --version)"' _ "$PROJECT"
+  assert_success
+  [[ "$output" == *$'v22.20.0\nv22.20.0' ]]
 }
 
 @test "skill scanner rejects a malicious installed skill" {
