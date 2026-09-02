@@ -1,0 +1,34 @@
+#!/bin/sh
+set -eu
+
+printf '%s\n' "$*" >>"$MOCK_DOCKER_LOG"
+
+if [ -n "${MOCK_DOCKER_FAIL:-}" ]; then
+  case $* in
+    *"$MOCK_DOCKER_FAIL"*) exit 42 ;;
+  esac
+fi
+
+case $* in
+  'compose version'|'info'|'compose -f compose.yaml config --quiet'|'compose -f compose.yaml build --pull app')
+    ;;
+  'context inspect --format {{.Endpoints.docker.Host}}')
+    printf 'unix://%s\n' "$MOCK_DOCKER_SOCKET"
+    ;;
+  'volume create')
+    printf '%s\n' mock-trivy-cache
+    ;;
+  'volume rm mock-trivy-cache')
+    ;;
+  'compose -f compose.yaml config --images')
+    printf '%s\n' \
+      'example/app:check' \
+      'postgres:17@sha256:dependency'
+    ;;
+  'run '*)
+    ;;
+  *)
+    printf 'unexpected docker invocation: %s\n' "$*" >&2
+    exit 64
+    ;;
+esac

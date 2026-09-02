@@ -1,0 +1,215 @@
+#!/bin/sh
+set -eu
+
+trivy_image=ghcr.io/aquasecurity/trivy:0.74.0@sha256:62b1e65e8869bc4b4c6aa4fa2b21595256c7c2f6018a9d9ad61caf87187c1969
+trivy_cache=
+
+cleanup() {
+  if [ -n "$trivy_cache" ]; then
+    docker volume rm "$trivy_cache" >/dev/null 2>&1 || :
+  fi
+}
+trap cleanup EXIT HUP INT TERM
+
+fail() {
+  printf 'container-check: %s\n' "$*" >&2
+  exit 1
+}
+
+command -v docker >/dev/null 2>&1 || fail 'docker is required'
+[ -f compose.yaml ] || fail 'compose.yaml is required'
+[ ! -e .trivyignore ] || fail 'use scoped .trivyignore.yaml entries; .trivyignore is not supported'
+
+docker compose version >/dev/null 2>&1 || fail 'Docker Compose v2 is required'
+docker info >/dev/null 2>&1 || fail 'the Docker daemon is not reachable'
+
+if [ -n "${DOCKER_HOST:-}" ]; then
+  docker_host=$DOCKER_HOST
+else
+  docker_host=$(docker context inspect --format '{{.Endpoints.docker.Host}}') ||
+    fail 'unable to inspect the active Docker context'
+fi
+case $docker_host in
+  unix://*) docker_socket=${docker_host#unix://} ;;
+  *) fail 'the active Docker context must use a local unix:// socket' ;;
+esac
+[ -n "$docker_socket" ] || fail 'the active Docker context returned an empty socket path'
+
+validate_ignore_file() {
+  ignore_file=$1
+  today=$(date -u +%Y-%m-%d)
+  awk -v today="$today" '
+    function value_after_colon(line, value) {
+      value = line
+      sub(/^[^:]*:[[:space:]]*/, "", value)
+      sub(/[[:space:]]*$/, "", value)
+      return value
+    }
+    function meaningful(value) {
+      return value != "" && value != "\"\"" && value != sprintf("%c%c", 39, 39) && value != "null" && value != "~"
+    }
+    function scalar_value(value, quote, character, tail, i) {
+      scalar_valid = 1
+      quote = substr(value, 1, 1)
+      if (quote != "\"" && quote != sprintf("%c", 39)) {
+        sub(/[[:space:]]+#.*/, "", value)
+        sub(/[[:space:]]*$/, "", value)
+        return value
+      }
+      for (i = 2; i <= length(value); i++) {
+        character = substr(value, i, 1)
+        if (character != quote) continue
+        if (quote == "\"" && substr(value, i - 1, 1) == "\\") continue
+        if (quote == sprintf("%c", 39) && substr(value, i + 1, 1) == quote) {
+          i++
+          continue
+        }
+        tail = substr(value, i + 1)
+        if (tail !~ /^[[:space:]]*(#.*)?$/) scalar_valid = 0
+        return substr(value, 2, i - 2)
+      }
+      scalar_valid = 0
+      return value
+    }
+    function valid_purl(value, remainder) {
+      if (value !~ /^pkg:[a-z][a-z0-9.+-]*\/[^[:space:]]+$/) return 0
+      remainder = value
+      gsub(/%[0-9A-Fa-f][0-9A-Fa-f]/, "", remainder)
+      return index(remainder, "%") == 0
+    }
+    function valid_path(value, first, segment) {
+      first = substr(value, 1, 1)
+      segment = value
+      sub(/\/.*/, "", segment)
+      return value != "." && value != "/" && value !~ /^\// &&
+        value !~ /(^|\/)\.\.?($|\/)/ && first != "*" && first != "?" &&
+        first != "[" && index(segment, "*") == 0 && index(segment, "?") == 0 &&
+        index(segment, "[") == 0 && index(segment, "]") == 0 &&
+        index(segment, "{") == 0 && index(segment, "}") == 0
+    }
+    function invalid(message) {
+      print ".trivyignore.yaml: " message > "/dev/stderr"
+      bad = 1
+    }
+    function finish_entry() {
+      if (!entry) return
+      if (!id) invalid("each exception requires a finding id")
+      if (!path_scope && !purl_scope) invalid("each exception requires paths or purls scope")
+      if (!statement) invalid("each exception requires a statement justification")
+      if (!expiry) invalid("each exception requires expired_at: YYYY-MM-DD")
+      else if (expiry !~ /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$/)
+        invalid("expired_at must use YYYY-MM-DD")
+      else {
+        split(expiry, parts, "-")
+        if (parts[2] < 1 || parts[2] > 12 || parts[3] < 1 || parts[3] > 31)
+          invalid("expired_at must be a valid calendar date")
+        else if (expiry < today) invalid("expired exception must be removed")
+      }
+    }
+    /^[[:space:]]*($|#)/ { next }
+    /^(vulnerabilities|misconfigurations|secrets):[[:space:]]*$/ {
+      finish_entry()
+      entry = 0
+      section = 1
+      section_name = $0
+      sub(/:.*/, "", section_name)
+      next
+    }
+    /^  - id:[[:space:]]*[^[:space:]].*$/ {
+      finish_entry()
+      entry = section
+      id = meaningful(value_after_colon($0))
+      path_scope = purl_scope = statement = expiry = 0
+      scope_list = ""
+      if (!entry) invalid("exception entry is outside a supported section")
+      next
+    }
+    /^    (paths|purls):[[:space:]]*$/ {
+      if (entry) {
+        scope_list = $0
+        sub(/^    /, "", scope_list)
+        sub(/:.*/, "", scope_list)
+        if (scope_list == "purls" && section_name != "vulnerabilities")
+          invalid("purls scope is supported only for vulnerabilities")
+      }
+      next
+    }
+    /^      - [^[:space:]].*$/ {
+      value = $0
+      sub(/^      -[[:space:]]*/, "", value)
+      value = scalar_value(value)
+      if (entry && scope_list == "purls" && section_name == "vulnerabilities") {
+        if (!scalar_valid || !valid_purl(value)) invalid("purls entries must be valid pkg: package URLs")
+        else purl_scope = 1
+      } else if (entry && scope_list == "paths") {
+        if (!scalar_valid || !meaningful(value) || !valid_path(value))
+          invalid("paths entries must start with a literal relative path segment")
+        else path_scope = 1
+      }
+      next
+    }
+    /^    statement:[[:space:]]*[^[:space:]].*$/ {
+      if (entry) statement = meaningful(value_after_colon($0))
+      scope_list = ""
+      next
+    }
+    /^    expired_at:[[:space:]]*[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][[:space:]]*$/ {
+      if (entry) {
+        value = $0
+        sub(/^    expired_at:[[:space:]]*/, "", value)
+        sub(/[[:space:]]*$/, "", value)
+        expiry = value
+      }
+      scope_list = ""
+      next
+    }
+    { invalid("unsupported or unscoped content at line " NR) }
+    END {
+      finish_entry()
+      if (!section || !entry) invalid("at least one scoped exception is required")
+      exit bad ? 1 : 0
+    }
+  ' "$ignore_file"
+}
+
+ignore_args=
+if [ -f .trivyignore.yaml ]; then
+  validate_ignore_file .trivyignore.yaml || fail 'invalid Trivy exception file'
+  ignore_args='--ignorefile /workspace/.trivyignore.yaml'
+fi
+
+docker compose -f compose.yaml config --quiet
+docker compose -f compose.yaml build --pull app
+
+trivy_cache=$(docker volume create)
+
+# Splitting the fixed option string is intentional; paths and image references
+# are supplied separately and cannot inject additional shell syntax.
+# shellcheck disable=SC2086
+docker run --rm \
+  -v "$PWD:/workspace:ro" \
+  -v "$trivy_cache:/root/.cache/" \
+  "$trivy_image" fs \
+  --scanners misconfig,secret \
+  --severity HIGH,CRITICAL \
+  --exit-code 1 \
+  $ignore_args \
+  /workspace
+
+images=$(docker compose -f compose.yaml config --images)
+[ -n "$images" ] || fail 'Compose returned no service images to scan'
+for image in $images; do
+  # shellcheck disable=SC2086
+  docker run --rm \
+    -v "$docker_socket:/var/run/docker.sock" \
+    -v "$PWD:/workspace:ro" \
+    -v "$trivy_cache:/root/.cache/" \
+    "$trivy_image" image \
+    --scanners vuln,secret \
+    --severity HIGH,CRITICAL \
+    --exit-code 1 \
+    $ignore_args \
+    "$image"
+done
+
+printf 'Container validation and security scans passed.\n'

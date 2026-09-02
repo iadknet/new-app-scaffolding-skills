@@ -1,9 +1,9 @@
 # Lean Agent Project Scaffolding
 
-This repository contains an initializer for new, stack-agnostic software
-projects. It creates agent-portable workflow skills, PRD tooling, repository
-policy checks, pinned shell/workflow analysis, and secret scanning without
-selecting an application framework.
+This repository distributes new-project scaffolds and an additive container
+bootstrap skill. The foundational scaffold creates agent-portable workflow
+skills, PRD tooling, repository policy checks, pinned shell/workflow analysis,
+and secret scanning without selecting an application framework.
 
 ## Repository boundary
 
@@ -31,6 +31,11 @@ another scaffold's skills.
 single-module Go command project with tight static feedback, native Git hooks,
 dependency vulnerability scanning, a non-blocking mutation-testing pilot, and
 GitHub Actions CI.
+
+`skills/docker-bootstrap/` instead operates on existing applications. It
+coordinates a separately installed Minimus Dockerfile workflow with canonical
+Compose configuration, conservative build-context exclusions, and a pinned
+containerized Trivy gate.
 
 ## Security defaults
 
@@ -70,13 +75,15 @@ vulnerability-reporting guidance.
 
 ## Skills
 
-The bootstrap skill creates the project; five private runtime skills are then
-installed only for the agents selected during initialization.
+The new-project bootstrap installs five private runtime skills only for the
+agents selected during initialization. The additive Docker skill acts directly
+on an existing application instead.
 
 | Skill | Scope | Use it for |
 | --- | --- | --- |
 | `agent-project-scaffold` | User/global bootstrap skill | Create a new, empty agent-ready project and install the selected agents' runtime skills. It does not retrofit existing repositories. |
 | `go-project-scaffold` | User/global bootstrap skill | Create a new Go command project with Go-specific skills, quality gates, hooks, and CI. It requires a Go module path. |
+| `docker-bootstrap` | User/global additive skill | Dockerize or harden an existing application with a Minimus application image, canonical `compose.yaml`, `.dockerignore`, and Trivy security gate. It requires the separately installed `minimus-dockerfile` skill. |
 | `project-workflow` | Generated project | Inspect current PRD state and route work to creation, readiness review, implementation, final review, or archival. |
 | `prd-create` | Generated project | Research, create, or materially revise a master PRD and dependency-ordered stage PRDs without implementing product code. |
 | `prd-review` | Generated project | Review a PRD for implementation readiness or review completed code, reporting P1/P2/P3 findings and enforcing revision gates. |
@@ -153,6 +160,15 @@ Then ask the agent to use `agent-project-scaffold` to create a named project at
 an explicit target directory and name the target agents. The installed skill
 runs the same bundled initializer as `bin/init-agent-project`.
 
+Install the additive Docker workflow independently for existing applications:
+
+```sh
+npx skills@1.5.23 add . --skill docker-bootstrap --global
+```
+
+Also install the Minimus plugin that provides `minimus-dockerfile`; the Docker
+skill stops before editing when that required workflow is unavailable.
+
 After `v0.1.0` is published, install its immutable source revision with:
 
 ```sh
@@ -186,6 +202,13 @@ Real external-tool integration is separate from the offline default test suite:
 ```sh
 make test-integration
 make test-distribution
+```
+
+The Docker/Trivy fixture is additionally opt-in because it pulls and builds
+container images:
+
+```sh
+RUN_DOCKER_BOOTSTRAP_INTEGRATION=1 make test-docker-integration
 ```
 
 The integration target exercises the pinned Aqua tools and Python tools, then
