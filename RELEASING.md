@@ -36,6 +36,6 @@ gh release create v0.1.0 --generate-notes --verify-tag
 The installer source is pinned by that tag:
 
 ```sh
-npx skills@1.5.23 add iadknet/new_app_scaffolding_skills#v0.1.0 \
+npx skills@1.5.23 add iadknet/new-app-scaffolding-skills#v0.1.0 \
   --skill agent-project-scaffold --global
 ```

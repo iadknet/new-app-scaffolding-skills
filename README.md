@@ -1,7 +1,7 @@
 # Secure Agentic Project Scaffolding
 
-[![Tests](https://github.com/iadknet/new_app_scaffolding_skills/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/iadknet/new_app_scaffolding_skills/actions/workflows/test.yml?query=branch%3Amain)
-[![License: MIT](https://img.shields.io/github/license/iadknet/new_app_scaffolding_skills)](LICENSE)
+[![Tests](https://github.com/iadknet/new-app-scaffolding-skills/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/iadknet/new-app-scaffolding-skills/actions/workflows/test.yml?query=branch%3Amain)
+[![License: MIT](https://img.shields.io/github/license/iadknet/new-app-scaffolding-skills)](LICENSE)
 
 This project provides reusable agent skills and scripts for initializing new
 coding projects with a secure, repeatable baseline. It is for developers
@@ -49,8 +49,8 @@ POSIX shell, Git, Node.js 22.20+, and network access for the pinned Agent Skills
 installer.
 
 ```sh
-git clone https://github.com/iadknet/new_app_scaffolding_skills.git
-cd new_app_scaffolding_skills
+git clone https://github.com/iadknet/new-app-scaffolding-skills.git
+cd new-app-scaffolding-skills
 
 npx skills@1.5.23 add . --skill agent-project-scaffold --global
 # Or:
@@ -223,7 +223,7 @@ tagging, and GitHub Release procedure.
 After `v0.1.0` is published, install its immutable source revision with:
 
 ```sh
-npx skills@1.5.23 add iadknet/new_app_scaffolding_skills#v0.1.0 \
+npx skills@1.5.23 add iadknet/new-app-scaffolding-skills#v0.1.0 \
   --skill agent-project-scaffold \
   --global
 ```

@@ -11,7 +11,7 @@ revisions are not supported.
 Do not open a public issue for a suspected vulnerability or include live
 credentials, tokens, keys, or other secrets in a report.
 
-Use [GitHub private vulnerability reporting](https://github.com/iadknet/new_app_scaffolding_skills/security/advisories/new).
+Use [GitHub private vulnerability reporting](https://github.com/iadknet/new-app-scaffolding-skills/security/advisories/new).
 
 Include:
 
