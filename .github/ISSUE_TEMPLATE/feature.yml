@@ -10,6 +10,7 @@ body:
       options:
         - agent-project-scaffold
         - go-project-scaffold
+        - docker-bootstrap
         - repository tooling
     validations:
       required: true

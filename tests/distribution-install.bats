@@ -52,3 +52,24 @@ done
 )
 
 }
+
+@test "distribution installation preserves the docker-bootstrap executable asset" {
+  bats_require_minimum_version 1.14.0
+  root=$(repo_root)
+  installed=$BATS_TEST_TMPDIR/docker-installed
+  mkdir "$installed"
+
+  (
+    cd "$installed"
+    npx --yes skills@1.5.23 add "$root" \
+      --skill docker-bootstrap \
+      --agent codex \
+      --copy \
+      --yes
+  )
+
+  skill=$installed/.agents/skills/docker-bootstrap
+  [ -f "$skill/SKILL.md" ]
+  [ -x "$skill/assets/scripts/container-check" ]
+  sh -n "$skill/assets/scripts/container-check"
+}
