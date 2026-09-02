@@ -51,8 +51,16 @@ setup() {
   run env AQUA_ROOT_DIR="$PROJECT/.tools/aqua" PATH="$PROJECT/.tools/aqua/bin:$PATH" \
     bash -c 'cd "$1" && printf "%s\n" "$(command -v node)" "$(command -v npm)" "$(node --version)" "$(npm exec -- node --version)"' _ "$PROJECT"
   assert_success
-  [[ "${lines[0]}" = "$PROJECT/.tools/aqua/bin/node" ]]
-  [[ "${lines[1]}" = "$PROJECT/.tools/aqua/bin/npm" ]]
+  [[ "${lines[0]}" = "$PROJECT/.tools/aqua/bin/node" ]] || {
+    printf 'expected node proxy: %s\nactual node path: %s\n' \
+      "$PROJECT/.tools/aqua/bin/node" "${lines[0]}" >&2
+    false
+  }
+  [[ "${lines[1]}" = "$PROJECT/.tools/aqua/bin/npm" ]] || {
+    printf 'expected npm proxy: %s\nactual npm path: %s\n' \
+      "$PROJECT/.tools/aqua/bin/npm" "${lines[1]}" >&2
+    false
+  }
   [[ "${lines[2]}" = 'v22.20.0' ]]
   [[ "${lines[3]}" = 'v22.20.0' ]]
 }
