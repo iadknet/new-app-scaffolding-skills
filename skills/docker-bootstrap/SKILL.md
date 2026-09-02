@@ -44,10 +44,10 @@ Dockerfile workflow here.
 
 Supporting database and cache containers are the exception: use their official
 upstream images, not Minimus images. Pin each as
-`image:<version>@sha256:<multi-platform-digest>`. Resolve the current digest from
-the publisher or registry and preserve the human-readable version tag. If the
-repository does not establish a major version, require the user to select one
-before writing Compose.
+`image: <repository>:<version>@sha256:<multi-platform-digest>`. Resolve the
+current digest from the publisher or registry and preserve the human-readable
+version tag. If the repository does not establish a major version,
+require the user to select one before writing Compose.
 
 ## Compose Runtime Model
 

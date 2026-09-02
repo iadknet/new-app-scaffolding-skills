@@ -5,8 +5,14 @@ load test_helper.bash
 setup() {
   bats_require_minimum_version 1.14.0
   [ "${RUN_DOCKER_BOOTSTRAP_INTEGRATION:-}" = 1 ] || skip 'set RUN_DOCKER_BOOTSTRAP_INTEGRATION=1 to run Docker integration'
-  command -v docker >/dev/null 2>&1 || skip 'docker is not installed'
-  docker info >/dev/null 2>&1 || skip 'docker daemon is unavailable'
+  command -v docker >/dev/null 2>&1 || {
+    printf 'docker is required when Docker integration is enabled\n' >&2
+    return 1
+  }
+  docker info >/dev/null 2>&1 || {
+    printf 'docker daemon is required when Docker integration is enabled\n' >&2
+    return 1
+  }
   root=$(repo_root)
   fixture=$BATS_TEST_TMPDIR/fixture
   mkdir -p "$fixture/scripts"
@@ -116,9 +122,10 @@ EOF
 
   cat >>"$fixture/compose.yaml" <<'YAML'
   deliberately-vulnerable:
-    image: alpine:3.10
+    image: alpine:3.10@sha256:451eee8bedcb2f029756dc3e9d73bab0e7943c1ac55cff3a4861c52a0fdd3e98
     command: ["true"]
 YAML
   run bash -c 'cd "$1" && scripts/container-check' _ "$fixture"
   assert_failure
+  [[ $output == *'CVE-'* ]]
 }

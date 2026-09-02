@@ -65,7 +65,7 @@ run_gate() {
   grep -Fq 'request approval before replacing or' "$skill"
   grep -Fq 'no source bind mounts, development' "$skill"
   grep -Fq 'or development profiles' "$skill"
-  grep -Fq '`image:<version>@sha256:<multi-platform-digest>`' "$skill"
+  grep -Fq '`image: <repository>:<version>@sha256:<multi-platform-digest>`' "$skill"
   grep -Fq 'require the user to select one' "$skill"
   [ ! -e "$root/skills/docker-bootstrap/assets/compose.yaml" ]
 }
@@ -73,13 +73,23 @@ run_gate() {
 @test "container-check validates, pulls fresh bases, and scans every Compose image" {
   run_gate
   assert_success
-  grep -Fq 'compose config --quiet' "$docker_log"
-  grep -Fq 'compose build --pull app' "$docker_log"
+  grep -Fq 'compose -f compose.yaml config --quiet' "$docker_log"
+  grep -Fq 'compose -f compose.yaml build --pull app' "$docker_log"
   grep -Fq 'fs --scanners misconfig,secret --severity HIGH,CRITICAL --exit-code 1' "$docker_log"
   grep -Fq 'image --scanners vuln,secret --severity HIGH,CRITICAL --exit-code 1 example/app:check' "$docker_log"
   grep -Fq 'image --scanners vuln,secret --severity HIGH,CRITICAL --exit-code 1 postgres:17@sha256:dependency' "$docker_log"
   [ "$(grep -c ' image --scanners vuln,secret ' "$docker_log")" -eq 2 ]
   grep -Fq 'volume rm mock-trivy-cache' "$docker_log"
+}
+
+@test "container-check isolates the canonical model from Compose overrides" {
+  printf '%s\n' 'services:' '  app:' '    image: example/override:wrong' >"$project/compose.override.yaml"
+  printf '%s\n' 'services:' '  app:' '    image: example/environment:wrong' >"$project/alternate.yaml"
+  export COMPOSE_FILE=alternate.yaml
+
+  run_gate
+  assert_success
+  [ "$(grep -c '^compose -f compose.yaml ' "$docker_log")" -eq 3 ]
 }
 
 @test "container-check propagates scanner failure and cleans its cache volume" {
@@ -95,13 +105,25 @@ run_gate() {
 vulnerabilities:
   - id: CVE-2099-0001
     purls:
-      - pkg:apk/example/library@1.2.3
+      - "pkg:apk/example/library@1.2.3" # reviewed package scope
     statement: Upstream fix is scheduled and this package path is not reachable.
     expired_at: 2099-12-31
 YAML
   run_gate
   assert_success
   grep -Fq -- '--ignorefile /workspace/.trivyignore.yaml' "$docker_log"
+
+  cat >"$project/.trivyignore.yaml" <<'YAML'
+secrets:
+  - id: generic-api-key
+    paths:
+      - "config/test-fixture.env" # reviewed fixture scope
+    statement: The committed test fixture contains an inert scanner token.
+    expired_at: 2099-12-31
+YAML
+  : >"$docker_log"
+  run_gate
+  assert_success
 
   cat >"$project/.trivyignore.yaml" <<'YAML'
 vulnerabilities:
@@ -113,12 +135,69 @@ YAML
   run_gate
   assert_failure
   [[ $output == *'requires paths or purls scope'* ]]
-  ! grep -Fq 'compose config --quiet' "$docker_log"
+  ! grep -Fq 'compose -f compose.yaml config --quiet' "$docker_log"
   ! grep -Fq 'volume create' "$docker_log"
 }
 
+@test "container-check rejects incompatible and whole-tree exception scopes" {
+  cat >"$project/.trivyignore.yaml" <<'YAML'
+secrets:
+  - id: generic-api-key
+    purls:
+      - pkg:apk/example/library@1.2.3
+    statement: A package cannot scope a secret finding.
+    expired_at: 2099-12-31
+YAML
+  run_gate
+  assert_failure
+  [[ $output == *'purls scope is supported only for vulnerabilities'* ]]
+  ! grep -Fq 'compose -f compose.yaml config --quiet' "$docker_log"
+
+  cat >"$project/.trivyignore.yaml" <<'YAML'
+misconfigurations:
+  - id: DS002
+    paths:
+      - "**" # an inline comment must not hide a whole-tree pattern
+    statement: A whole-tree pattern is deliberately too broad.
+    expired_at: 2099-12-31
+YAML
+  : >"$docker_log"
+  run_gate
+  assert_failure
+  [[ $output == *'paths entries must start with a literal relative path segment'* ]]
+  ! grep -Fq 'compose -f compose.yaml config --quiet' "$docker_log"
+
+  cat >"$project/.trivyignore.yaml" <<'YAML'
+misconfigurations:
+  - id: DS002
+    paths:
+      - "{**,config/test/**}"
+    statement: Brace expansion must not hide a whole-tree alternative.
+    expired_at: 2099-12-31
+YAML
+  : >"$docker_log"
+  run_gate
+  assert_failure
+  [[ $output == *'paths entries must start with a literal relative path segment'* ]]
+  ! grep -Fq 'compose -f compose.yaml config --quiet' "$docker_log"
+
+  cat >"$project/.trivyignore.yaml" <<'YAML'
+vulnerabilities:
+  - id: CVE-2099-0001
+    purls:
+      - pkg:apk/%
+    statement: Invalid package URLs must fail before scanning.
+    expired_at: 2099-12-31
+YAML
+  : >"$docker_log"
+  run_gate
+  assert_failure
+  [[ $output == *'purls entries must be valid pkg: package URLs'* ]]
+  ! grep -Fq 'compose -f compose.yaml config --quiet' "$docker_log"
+}
+
 @test "container-check fails at Compose validation and does not create scan state" {
-  export MOCK_DOCKER_FAIL='compose config --quiet'
+  export MOCK_DOCKER_FAIL='compose -f compose.yaml config --quiet'
   run_gate
   assert_failure
   [ "$status" -eq 42 ]

@@ -10,7 +10,7 @@ if [ -n "${MOCK_DOCKER_FAIL:-}" ]; then
 fi
 
 case $* in
-  'compose version'|'info'|'compose config --quiet'|'compose build --pull app')
+  'compose version'|'info'|'compose -f compose.yaml config --quiet'|'compose -f compose.yaml build --pull app')
     ;;
   'context inspect --format {{.Endpoints.docker.Host}}')
     printf 'unix://%s\n' "$MOCK_DOCKER_SOCKET"
@@ -20,7 +20,7 @@ case $* in
     ;;
   'volume rm mock-trivy-cache')
     ;;
-  'compose config --images')
+  'compose -f compose.yaml config --images')
     printf '%s\n' \
       'example/app:check' \
       'postgres:17@sha256:dependency'
