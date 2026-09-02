@@ -16,30 +16,30 @@ hooks: ## Enable this repository's native Git hooks.
 	@git config core.hooksPath .githooks
 	@printf 'core.hooksPath -> .githooks\\n'
 
-format: ## Rewrite Go files with gofumpt.
-	@$(TOOLS)/golangci-lint fmt
+format: ## Rewrite Go files with gofumpt when packages exist.
+	@packages=$$($(GO) list ./...); status=$$?; [ "$$status" -eq 0 ] || exit "$$status"; if [ -n "$$packages" ]; then $(TOOLS)/golangci-lint fmt; else printf 'No Go packages yet; skipping format.\n'; fi
 
 fmt-check: ## Fail when Go files require formatting.
-	@$(TOOLS)/golangci-lint fmt --diff
+	@packages=$$($(GO) list ./...); status=$$?; [ "$$status" -eq 0 ] || exit "$$status"; if [ -n "$$packages" ]; then $(TOOLS)/golangci-lint fmt --diff; else printf 'No Go packages yet; skipping format check.\n'; fi
 
 lint: ## Run static, complexity, security, and test-quality analysis.
-	@$(TOOLS)/golangci-lint run ./...
+	@packages=$$($(GO) list ./...); status=$$?; [ "$$status" -eq 0 ] || exit "$$status"; if [ -n "$$packages" ]; then $(TOOLS)/golangci-lint run ./...; else printf 'No Go packages yet; skipping lint.\n'; fi
 
 lint-changed: ## Report lint issues in files changed since BASE (default origin/main).
-	@$(TOOLS)/golangci-lint run --new-from-merge-base=$${BASE:-origin/main} --whole-files ./...
+	@packages=$$($(GO) list ./...); status=$$?; [ "$$status" -eq 0 ] || exit "$$status"; if [ -n "$$packages" ]; then $(TOOLS)/golangci-lint run --new-from-merge-base=$${BASE:-origin/main} --whole-files ./...; else printf 'No Go packages yet; skipping lint.\n'; fi
 
 test: ## Run the unit test suite.
-	@$(GO) test ./...
+	@packages=$$($(GO) list ./...); status=$$?; [ "$$status" -eq 0 ] || exit "$$status"; if [ -n "$$packages" ]; then $(GO) test ./...; else printf 'No Go packages yet; skipping tests.\n'; fi
 
 test-race: ## Run the full unit test suite with the race detector.
-	@$(GO) test -race ./...
+	@packages=$$($(GO) list ./...); status=$$?; [ "$$status" -eq 0 ] || exit "$$status"; if [ -n "$$packages" ]; then $(GO) test -race ./...; else printf 'No Go packages yet; skipping race tests.\n'; fi
 
 verify: ## Verify module contents and fail on go.mod/go.sum drift.
 	@$(GO) mod verify
 	@$(GO) mod tidy -diff
 
 vuln: ## Find reachable known Go vulnerabilities.
-	@$(TOOLS)/govulncheck ./...
+	@packages=$$($(GO) list ./...); status=$$?; [ "$$status" -eq 0 ] || exit "$$status"; if [ -n "$$packages" ]; then $(TOOLS)/govulncheck ./...; else printf 'No Go packages yet; skipping reachable-vulnerability analysis.\n'; fi
 
 dep-audit: ## Scan Go dependencies for known vulnerabilities.
 	@$(TOOLS)/osv-scanner scan source --recursive .
@@ -55,10 +55,10 @@ quick: fmt-check lint test ## Fast feedback after a coherent edit.
 check: fmt-check lint test-race verify vuln dep-audit policy-check ## Full local and CI quality gate.
 
 mutation: ## Run non-blocking whole-module mutation testing.
-	@$(TOOLS)/gremlins unleash --output-statuses lc
+	@packages=$$($(GO) list ./...); status=$$?; [ "$$status" -eq 0 ] || exit "$$status"; if [ -n "$$packages" ]; then $(TOOLS)/gremlins unleash --output-statuses lc; else printf 'No Go packages yet; skipping mutation testing.\n'; fi
 
 mutation-diff: ## Run non-blocking mutation testing for changes since BASE.
-	@$(TOOLS)/gremlins unleash --diff "$${BASE:-origin/main}" --output-statuses lc
+	@packages=$$($(GO) list ./...); status=$$?; [ "$$status" -eq 0 ] || exit "$$status"; if [ -n "$$packages" ]; then $(TOOLS)/gremlins unleash --diff "$${BASE:-origin/main}" --output-statuses lc; else printf 'No Go packages yet; skipping mutation testing.\n'; fi
 
-build: ## Build every Go command.
-	@$(GO) build ./cmd/...
+build: ## Build all Go packages and commands.
+	@$(GO) build ./...
