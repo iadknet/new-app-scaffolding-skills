@@ -75,8 +75,6 @@ fi
 if [ -z "$display_name" ]; then
   display_name=$(basename "$target")
 fi
-command_name=$(printf '%s' "$display_name" | tr '[:upper:] ' '[:lower:]-' | tr -cd 'a-z0-9-')
-[ -n "$command_name" ] || fail 'target name must contain letters or numbers'
 
 script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 skill_dir=$(CDPATH='' cd -- "$script_dir/.." && pwd)
@@ -116,8 +114,6 @@ replace_token() {
 }
 replace_token '__PROJECT_NAME__' "$display_name"
 replace_token '__MODULE_PATH__' "$module_path"
-replace_token '__COMMAND_NAME__' "$command_name"
-mv "$stage/cmd/__COMMAND_NAME__" "$stage/cmd/$command_name"
 
 (
   cd "$stage"
@@ -126,7 +122,13 @@ mv "$stage/cmd/__COMMAND_NAME__" "$stage/cmd/$command_name"
   # shellcheck disable=SC2086
   NPM_CONFIG_BEFORE=$npm_before npx --yes skills@1.5.23 add "$project_skills_dir" --skill '*' --copy --yes $agent_arguments
   chmod +x scripts/* .githooks/*
-  go test ./...
+  packages=$(go list ./...)
+  if [ -n "$packages" ]; then
+    go test ./...
+  else
+    go mod verify
+    go mod tidy -diff
+  fi
 )
 
 if [ "$existing_git" -eq 1 ]; then

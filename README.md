@@ -28,9 +28,9 @@ template and runtime-skill bundle, so installing or invoking one cannot install
 another scaffold's skills.
 
 `skills/go-project-scaffold/` is the first stack-specific sibling. It creates a
-single-module Go command project with tight static feedback, native Git hooks,
-dependency vulnerability scanning, a non-blocking mutation-testing pilot, and
-GitHub Actions CI.
+single-module Go foundation with no assumed application architecture, tight
+static feedback, native Git hooks, dependency vulnerability scanning, a
+non-blocking mutation-testing pilot, and GitHub Actions CI.
 
 `skills/docker-bootstrap/` instead operates on existing applications. It
 coordinates a separately installed Minimus Dockerfile workflow with canonical
@@ -82,7 +82,7 @@ on an existing application instead.
 | Skill | Scope | Use it for |
 | --- | --- | --- |
 | `agent-project-scaffold` | User/global bootstrap skill | Create a new, empty agent-ready project and install the selected agents' runtime skills. It does not retrofit existing repositories. |
-| `go-project-scaffold` | User/global bootstrap skill | Create a new Go command project with Go-specific skills, quality gates, hooks, and CI. It requires a Go module path. |
+| `go-project-scaffold` | User/global bootstrap skill | Create a new, architecture-neutral Go module with Go-specific skills, quality gates, hooks, and CI. It requires a Go module path. |
 | `docker-bootstrap` | User/global additive skill | Dockerize or harden an existing application with a Minimus application image, canonical `compose.yaml`, `.dockerignore`, and Trivy security gate. It requires the separately installed `minimus-dockerfile` skill. |
 | `project-workflow` | Generated project | Inspect current PRD state and route work to creation, readiness review, implementation, final review, or archival. |
 | `prd-create` | Generated project | Research, create, or materially revise a master PRD and dependency-ordered stage PRDs without implementing product code. |

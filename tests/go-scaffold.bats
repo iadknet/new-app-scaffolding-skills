@@ -34,15 +34,20 @@ EOF
 chmod +x "$mock_bin/npx"
 }
 
-@test "Go scaffold renders a valid project and selected skills" {
+@test "Go scaffold renders a neutral module foundation and selected skills" {
 project=$tmp/widget
 PATH="$mock_bin:$PATH" "$root/bin/init-go-project" --name Widget --module example.com/acme/widget --agent codex --agent claude-code "$project" >/dev/null
-for file in go.mod Makefile .golangci.yml AGENTS.md .githooks/pre-commit scripts/install-go-tools scripts/policy-check .github/workflows/ci.yml cmd/widget/main.go; do
+for file in go.mod Makefile .golangci.yml AGENTS.md .githooks/pre-commit scripts/install-go-tools scripts/policy-check .github/workflows/ci.yml; do
   [ -f "$project/$file" ] || { printf 'missing %s\n' "$file" >&2; exit 1; }
 done
+[ -z "$(find "$project" -type f -name '*.go' -print -quit)" ] || {
+  printf 'Go scaffold generated application source\n' >&2
+  exit 1
+}
 grep -Fq 'module example.com/acme/widget' "$project/go.mod"
 grep -Fq 'go 1.26.5' "$project/go.mod"
 grep -Fq 'gocyclo' "$project/.golangci.yml"
+grep -Fq 'No Go packages yet; skipping lint.' "$project/Makefile"
 (
   cd "$project"
   scripts/policy-check
@@ -58,6 +63,27 @@ git -C "$existing_project" init >/dev/null
 PATH="$mock_bin:$PATH" "$root/bin/init-go-project" --module example.com/acme/existing-widget --agent codex "$existing_project" >/dev/null
 [ "$(git -C "$existing_project" symbolic-ref --short HEAD)" = main ]
 [ -f "$existing_project/.git/HEAD" ]
+}
+
+@test "Go scaffold package-dependent targets accept an empty module" {
+project=$tmp/empty-module
+PATH="$mock_bin:$PATH" "$root/bin/init-go-project" --module example.com/acme/empty --agent codex "$project" >/dev/null
+run make -C "$project" format fmt-check lint lint-changed test test-race vuln mutation mutation-diff build verify
+[ "$status" -eq 0 ]
+[[ "$output" == *"No Go packages yet; skipping lint."* ]]
+[[ "$output" == *"No Go packages yet; skipping tests."* ]]
+[[ "$output" == *"No Go packages yet; skipping reachable-vulnerability analysis."* ]]
+}
+
+@test "Go scaffold package-dependent targets fail when package discovery fails" {
+project=$tmp/invalid-packages
+PATH="$mock_bin:$PATH" "$root/bin/init-go-project" --module example.com/acme/invalid --agent codex "$project" >/dev/null
+printf 'package one\n' >"$project/one.go"
+printf 'package two\n' >"$project/two.go"
+run make -C "$project" quick
+[ "$status" -ne 0 ]
+[[ "$output" == *"found packages one"* ]]
+[[ "$output" != *"No Go packages yet"* ]]
 }
 
 @test "Go scaffold rejects a missing module path" {
