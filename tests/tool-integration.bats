@@ -34,6 +34,7 @@ setup() {
   done
   [ -x "$PROJECT/.git/hooks/pre-commit" ]
   [ -z "$(git -C "$PROJECT" config --local --get core.hooksPath 2>/dev/null || :)" ]
+  cmp "$PROJECT/scripts/pre-commit-hook" "$PROJECT/.git/hooks/pre-commit"
 
   mv "$PROJECT/aqua-checksums.json" "$PROJECT/aqua-checksums.json.valid"
   printf '{\n  "checksums": []\n}\n' >"$PROJECT/aqua-checksums.json"

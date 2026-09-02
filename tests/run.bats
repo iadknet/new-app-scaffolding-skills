@@ -69,7 +69,7 @@ init() {
 project="$tmp/project with spaces"
 init --name 'Example & Tools' "$project" >/dev/null
 for expected in AGENTS.md CHANGELOG.md CLAUDE.md Makefile README.md SECURITY.md .pre-commit-config.yaml \
-  scripts/changelog scripts/prd-check scripts/skill-check scripts/install-pre-commit \
+  scripts/changelog scripts/prd-check scripts/skill-check scripts/install-pre-commit scripts/pre-commit-hook \
   aqua.yaml aqua-checksums.json scripts/dependency-audit scripts/dependency-policy-check \
   docs/prds/active/project-foundation/master-prd.md .github/workflows/ci.yml; do
   assert_file "$project/$expected"
@@ -77,9 +77,16 @@ done
 [ ! -e "$project/scripts"/aqua ] || fail 'generated project contains the obsolete Aqua adapter'
 [ ! -e "$project/.tools" ] || fail 'generated project contains local tool state'
 grep -Fq 'entry: make project-precommit' "$project/.pre-commit-config.yaml" || fail 'generated project hook bypasses Make'
+grep -Fq 'repo_root=$(git rev-parse --show-toplevel)' "$project/scripts/pre-commit-hook" || fail 'generated pre-commit hook is not repository-relative'
 grep -Fq '# Example & Tools' "$project/README.md" || fail 'project name was not rendered'
 if grep -RE '__[A-Z_]+__' "$project" --exclude-dir=.git >/dev/null 2>&1; then
   fail 'unrendered project token'
+fi
+if find "$project" -type l -print -quit | grep -q .; then
+  fail 'generated project contains a symlink'
+fi
+if grep -RFl "$tmp" "$project" --exclude-dir=.git >/dev/null 2>&1; then
+  fail 'generated project contains its staging or test path'
 fi
 [ "$(git -C "$project" symbolic-ref --short HEAD)" = main ] || fail 'initial branch is not main'
 assert_fails git -C "$project" rev-parse --verify HEAD
@@ -124,4 +131,21 @@ invalid="$tmp/invalid-agent"
 assert_fails env PATH="$mock_bin:$PATH" "$root/bin/init-agent-project" --agent unsupported "$invalid"
 [ ! -e "$invalid" ] || fail 'invalid agent left a target directory'
 pass 'rejects unsafe targets and rolls back a failed install'
+}
+
+@test "pre-commit installer is repository-relative and rejects custom hook paths" {
+project=$tmp/portable-hook
+init "$project" >/dev/null
+mkdir -p "$project/.tools/bin" "$project/nested"
+printf '#!/bin/sh\nprintf "pre-commit 4.5.1\\n"\n' >"$project/.tools/bin/pre-commit"
+chmod +x "$project/.tools/bin/pre-commit"
+
+run sh -c 'cd "$1/nested" && ../scripts/install-pre-commit' _ "$project"
+assert_success
+cmp "$project/scripts/pre-commit-hook" "$project/.git/hooks/pre-commit"
+
+git -C "$project" config core.hooksPath custom-hooks
+run sh -c 'cd "$1/nested" && ../scripts/install-pre-commit' _ "$project"
+assert_failure
+[[ "$output" = *'unsupported core.hooksPath: custom-hooks'* ]]
 }

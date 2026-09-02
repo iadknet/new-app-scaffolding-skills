@@ -44,6 +44,14 @@ done
   printf 'Go scaffold generated application source\n' >&2
   exit 1
 }
+[ -z "$(find "$project" -type l -print -quit)" ] || {
+  printf 'Go scaffold generated a symlink\n' >&2
+  exit 1
+}
+if grep -RFl "$tmp" "$project" --exclude-dir=.git >/dev/null 2>&1; then
+  printf 'Go scaffold leaked its staging or test path\n' >&2
+  exit 1
+fi
 grep -Fq 'module example.com/acme/widget' "$project/go.mod"
 grep -Fq 'go 1.26.5' "$project/go.mod"
 grep -Fq 'gocyclo' "$project/.golangci.yml"
@@ -63,6 +71,28 @@ git -C "$existing_project" init >/dev/null
 PATH="$mock_bin:$PATH" "$root/bin/init-go-project" --module example.com/acme/existing-widget --agent codex "$existing_project" >/dev/null
 [ "$(git -C "$existing_project" symbolic-ref --short HEAD)" = main ]
 [ -f "$existing_project/.git/HEAD" ]
+}
+
+@test "Go tool installer is repository-relative" {
+project=$tmp/portable-tools
+PATH="$mock_bin:$PATH" "$root/bin/init-go-project" --module example.com/acme/portable --agent codex "$project" >/dev/null
+go_bin=$tmp/go-bin
+log=$tmp/go-install.log
+mkdir "$go_bin" "$project/nested"
+cat >"$go_bin/go" <<'EOF'
+#!/bin/sh
+set -eu
+[ "$1" = install ] || exit 2
+printf '%s\n' "$GOBIN" >>"$GO_INSTALL_LOG"
+EOF
+chmod +x "$go_bin/go"
+
+run env PATH="$go_bin:$PATH" GO_INSTALL_LOG="$log" sh -c 'cd "$1/nested" && ../scripts/install-go-tools' _ "$project"
+[ "$status" -eq 0 ]
+[ "$(wc -l <"$log" | tr -d ' ')" -eq 5 ]
+while IFS= read -r installed_to; do
+  [ "$installed_to" = "$project/.tools/bin" ]
+done <"$log"
 }
 
 @test "Go scaffold package-dependent targets accept an empty module" {
