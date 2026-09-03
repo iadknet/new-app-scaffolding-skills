@@ -30,7 +30,7 @@ jobs:
           cache: false
       - uses: aquaproj/aqua-installer@96a9bc20066c5bf5e275b41019cfc165b25f4e2e # v4.0.5
         with:
-          aqua_version: v2.62.2
+          aqua_version: v2.62.3
       - run: make setup
       - run: make check
 
@@ -45,7 +45,7 @@ jobs:
           persist-credentials: false
       - uses: aquaproj/aqua-installer@96a9bc20066c5bf5e275b41019cfc165b25f4e2e # v4.0.5
         with:
-          aqua_version: v2.62.2
+          aqua_version: v2.62.3
       - run: make test-integration
 
   skill-security:
@@ -56,7 +56,7 @@ jobs:
           persist-credentials: false
       - uses: aquaproj/aqua-installer@96a9bc20066c5bf5e275b41019cfc165b25f4e2e # v4.0.5
         with:
-          aqua_version: v2.62.2
+          aqua_version: v2.62.3
       - run: scripts/install-skill-scanner
       - run: scripts/skill-check --require-tools
 
@@ -68,7 +68,7 @@ jobs:
           persist-credentials: false
       - uses: aquaproj/aqua-installer@96a9bc20066c5bf5e275b41019cfc165b25f4e2e # v4.0.5
         with:
-          aqua_version: v2.62.2
+          aqua_version: v2.62.3
       - run: make test-distribution
 
   docker-integration:
@@ -79,7 +79,7 @@ jobs:
           persist-credentials: false
       - uses: aquaproj/aqua-installer@96a9bc20066c5bf5e275b41019cfc165b25f4e2e # v4.0.5
         with:
-          aqua_version: v2.62.2
+          aqua_version: v2.62.3
       - run: RUN_DOCKER_BOOTSTRAP_INTEGRATION=1 make test-docker-integration
 
   actions-security:
@@ -88,11 +88,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: zizmorcore/zizmor-action@3dc1ecc9bcb9e94e9b2c709687979e1298497054 # v0.6.2
+      - uses: zizmorcore/zizmor-action@70fb788f84895a7701f5643d103d587e460b5c99 # v0.6.3
         with:
           advanced-security: false
           online-audits: false
-          version: v1.29.0
+          version: v1.30.0
 
   ci-required:
     name: CI Required

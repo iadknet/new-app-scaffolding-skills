@@ -1,6 +1,8 @@
 #!/bin/sh
 set -eu
 
+# Keep this aligned with the newest release eligible under the generated
+# template's seven-day package cooling period.
 version=2.0.13
 script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 repository_root=$(CDPATH='' cd -- "$script_dir/.." && pwd)

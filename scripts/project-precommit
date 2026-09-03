@@ -8,8 +8,7 @@ unset GIT_DIR GIT_WORK_TREE GIT_INDEX_FILE GIT_PREFIX
 find bin scripts skills/agent-project-scaffold/scripts \
   skills/agent-project-scaffold/assets/template/scripts \
   skills/go-project-scaffold/scripts \
-  skills/go-project-scaffold/assets/template/scripts \
-  skills/go-project-scaffold/assets/template/.githooks -type f -perm -111 -print |
+  skills/go-project-scaffold/assets/template/scripts -type f -perm -111 -print |
   while IFS= read -r file; do sh -n "$file"; done
 make --no-print-directory quality
 make --no-print-directory test

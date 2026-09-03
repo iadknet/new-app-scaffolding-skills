@@ -30,7 +30,7 @@ checksum_records() {
 }
 
 @test "Aqua packages and checksum enforcement are pinned" {
-  for package in nodejs/node@v22.20.0 astral-sh/uv@0.12.3 bats-core/bats-core@v1.14.0 rhysd/actionlint@v1.7.12 koalaman/shellcheck@v0.11.0 gitleaks/gitleaks@v8.30.1 google/osv-scanner@v2.4.0; do
+  for package in nodejs/node@v24.20.0 astral-sh/uv@0.12.9 bats-core/bats-core@v1.14.0 rhysd/actionlint@v1.7.12 koalaman/shellcheck@v0.11.0 gitleaks/gitleaks@v8.30.1 google/osv-scanner@v2.5.1; do
     grep -Fq "name: $package" "$ROOT/aqua.yaml"
   done
   grep -Fq 'require_checksum: true' "$ROOT/aqua.yaml"

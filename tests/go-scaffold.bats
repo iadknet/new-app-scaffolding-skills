@@ -37,7 +37,7 @@ chmod +x "$mock_bin/npx"
 @test "Go scaffold renders a neutral module foundation and selected skills" {
 project=$tmp/widget
 PATH="$mock_bin:$PATH" "$root/bin/init-go-project" --name Widget --module example.com/acme/widget --agent codex --agent claude-code "$project" >/dev/null
-for file in go.mod Makefile .golangci.yml AGENTS.md .githooks/pre-commit scripts/install-go-tools scripts/policy-check .github/workflows/ci.yml; do
+for file in go.mod Makefile .golangci.yml AGENTS.md scripts/git-hooks/pre-commit scripts/install-go-tools scripts/policy-check .github/workflows/ci.yml; do
   [ -f "$project/$file" ] || { printf 'missing %s\n' "$file" >&2; exit 1; }
 done
 [ -z "$(find "$project" -type f -name '*.go' -print -quit)" ] || {
@@ -53,7 +53,7 @@ if grep -RFl "$tmp" "$project" --exclude-dir=.git >/dev/null 2>&1; then
   exit 1
 fi
 grep -Fq 'module example.com/acme/widget' "$project/go.mod"
-grep -Fq 'go 1.26.5' "$project/go.mod"
+grep -Fq 'go 1.27.1' "$project/go.mod"
 grep -Fq 'gocyclo' "$project/.golangci.yml"
 grep -Fq 'No Go packages yet; skipping lint.' "$project/Makefile"
 (
