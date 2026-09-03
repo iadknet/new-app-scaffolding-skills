@@ -121,7 +121,7 @@ replace_token '__MODULE_PATH__' "$module_path"
   # agent_arguments contains only parser-validated names.
   # shellcheck disable=SC2086
   NPM_CONFIG_BEFORE=$npm_before npx --yes skills@1.5.23 add "$project_skills_dir" --skill '*' --copy --yes $agent_arguments
-  chmod +x scripts/* .githooks/*
+  chmod +x scripts/* scripts/git-hooks/*
   packages=$(go list ./...)
   if [ -n "$packages" ]; then
     go test ./...

@@ -137,7 +137,7 @@ pass 'rejects unsafe targets and rolls back a failed install'
 project=$tmp/portable-hook
 init "$project" >/dev/null
 mkdir -p "$project/.tools/bin" "$project/nested"
-printf '#!/bin/sh\nprintf "pre-commit 4.5.1\\n"\n' >"$project/.tools/bin/pre-commit"
+printf '#!/bin/sh\nprintf "pre-commit 4.6.2\\n"\n' >"$project/.tools/bin/pre-commit"
 chmod +x "$project/.tools/bin/pre-commit"
 
 run sh -c 'cd "$1/nested" && ../scripts/install-pre-commit' _ "$project"

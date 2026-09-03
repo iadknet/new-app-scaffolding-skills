@@ -13,8 +13,8 @@ setup: ## Install pinned local tools and enable Git hooks.
 	@$(MAKE) --no-print-directory hooks
 
 hooks: ## Enable this repository's native Git hooks.
-	@git config core.hooksPath .githooks
-	@printf 'core.hooksPath -> .githooks\\n'
+	@git config core.hooksPath scripts/git-hooks
+	@printf 'core.hooksPath -> scripts/git-hooks\\n'
 
 format: ## Rewrite Go files with gofumpt when packages exist.
 	@packages=$$($(GO) list ./...); status=$$?; [ "$$status" -eq 0 ] || exit "$$status"; if [ -n "$$packages" ]; then $(TOOLS)/golangci-lint fmt; else printf 'No Go packages yet; skipping format.\n'; fi

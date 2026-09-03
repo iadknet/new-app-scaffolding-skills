@@ -34,7 +34,7 @@ skill-check: ## Scan all repository skills for high-severity security findings.
 	@scripts/skill-check
 
 check: require-bats ## Run distribution quality checks and the local test suite.
-	@find bin scripts skills/agent-project-scaffold/scripts skills/agent-project-scaffold/assets/template/scripts skills/go-project-scaffold/scripts skills/go-project-scaffold/assets/template/scripts skills/go-project-scaffold/assets/template/.githooks skills/docker-bootstrap/assets/scripts -type f -perm -111 -print | while IFS= read -r file; do sh -n "$$file"; done
+	@find bin scripts skills/agent-project-scaffold/scripts skills/agent-project-scaffold/assets/template/scripts skills/go-project-scaffold/scripts skills/go-project-scaffold/assets/template/scripts skills/docker-bootstrap/assets/scripts -type f -perm -111 -print | while IFS= read -r file; do sh -n "$$file"; done
 	@$(BATS) tests/distribution-quality.bats
 	@$(MAKE) --no-print-directory test
 	@scripts/skill-check

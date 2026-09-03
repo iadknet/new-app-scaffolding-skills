@@ -58,7 +58,7 @@ setup() {
   run env AQUA_ROOT_DIR="$PROJECT/.tools/aqua" PATH="$PROJECT/.tools/aqua/bin:$PATH" \
     bash -c 'cd "$1" && printf "%s\n" "$(node --version)" "$(npm exec -- node --version)"' _ "$PROJECT"
   assert_success
-  [[ "$output" == *$'v22.20.0\nv22.20.0' ]]
+  [[ "$output" == *$'v24.20.0\nv24.20.0' ]]
 }
 
 @test "skill scanner rejects a malicious installed skill" {

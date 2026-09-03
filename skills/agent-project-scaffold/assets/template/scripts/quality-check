@@ -24,6 +24,9 @@ if [ ! -x "$actionlint" ] || [ ! -x "$shellcheck" ]; then
   exit 0
 fi
 
-find scripts -type f -exec shellcheck --shell=sh --external-sources {} +
-actionlint -shellcheck="$shellcheck"
+for script in scripts/*; do
+  [ -f "$script" ] || continue
+  "$shellcheck" --shell=sh --external-sources "$script"
+done
+"$actionlint" -shellcheck="$shellcheck"
 printf 'Repository quality validation passed.\n'

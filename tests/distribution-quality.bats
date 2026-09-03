@@ -21,8 +21,11 @@ if [ ! -x "$actionlint" ] || [ ! -x "$shellcheck" ]; then
   exit 1
 fi
 
-find bin scripts skills/agent-project-scaffold/scripts skills/agent-project-scaffold/assets/template/scripts skills/go-project-scaffold/scripts skills/go-project-scaffold/assets/template/scripts skills/go-project-scaffold/assets/template/.githooks skills/docker-bootstrap/assets/scripts tests/fixtures/docker-bootstrap \
-  -type f -perm -111 -exec shellcheck --shell=sh --external-sources {} +
-actionlint -shellcheck="$shellcheck" .github/workflows/*.yml skills/agent-project-scaffold/assets/template/.github/workflows/*.yml skills/go-project-scaffold/assets/template/.github/workflows/*.yml
+find bin scripts skills/agent-project-scaffold/scripts skills/agent-project-scaffold/assets/template/scripts skills/go-project-scaffold/scripts skills/go-project-scaffold/assets/template/scripts skills/docker-bootstrap/assets/scripts tests/fixtures/docker-bootstrap \
+  -type f -perm -111 -print |
+  while IFS= read -r script; do
+    "$shellcheck" --shell=sh --external-sources "$script"
+  done
+"$actionlint" -shellcheck="$shellcheck" .github/workflows/*.yml skills/agent-project-scaffold/assets/template/.github/workflows/*.yml skills/go-project-scaffold/assets/template/.github/workflows/*.yml
 printf 'Distribution quality validation passed.\n'
 }

@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-version=4.5.1
+version=4.6.2
 script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 repository_root=$(CDPATH='' cd -- "$script_dir/.." && pwd)
 target=$repository_root/.tools/bin/pre-commit
